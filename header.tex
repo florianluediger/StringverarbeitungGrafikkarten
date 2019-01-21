@@ -1,4 +1,3 @@
-% header.tex
 \documentclass[a4paper,11pt,twoside,ngerman,color]{book}
 \usepackage[a4paper,left=3.5cm,right=2.5cm,bottom=3.5cm,top=3cm]{geometry}
 
@@ -23,70 +22,23 @@
 
 
 % Bibtex deutsch
-\usepackage{bibgerm}
+\usepackage[backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
 
 % URLs
 \usepackage{url}
 
 % Caption Packet
 \usepackage[margin=0pt,font=small,labelfont=bf]{caption}
-% Gliederung einstellen
-%\setcounter{secnumdepth}{5}
-%\setcounter{tocdepth}{5}
-
-% Theorem-Optionen %
-\theoremseparator{.}
-\theoremstyle{change}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{satz}[theorem]{Satz}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{korollar}[theorem]{Korollar}
-\newtheorem{proposition}[theorem]{Proposition}
-% Ohne Numerierung
-\theoremstyle{nonumberplain}
-\renewtheorem{theorem*}{Theorem}
-\renewtheorem{satz*}{Satz}
-\renewtheorem{lemma*}{Lemma}
-\renewtheorem{korollar*}{Korollar}
-\renewtheorem{proposition*}{Proposition}
-% Definitionen mit \upshape
-\theorembodyfont{\upshape}
-\theoremstyle{change}
-\newtheorem{definition}[theorem]{Definition}
-\theoremstyle{nonumberplain}
-\renewtheorem{definition*}{Definition}
-% Kursive Schrift
-\theoremheaderfont{\itshape}
-\newtheorem{notation}{Notation}
-\newtheorem{konvention}{Konvention}
-\newtheorem{bezeichnung}{Bezeichnung}
-\theoremsymbol{\ensuremath{\Box}}
-\newtheorem{beweis}{Beweis}
-\theoremsymbol{}
-\theoremstyle{change}
-\theoremheaderfont{\bfseries}
-\newtheorem{bemerkung}[theorem]{Bemerkung}
-\newtheorem{beobachtung}[theorem]{Beobachtung}
-\newtheorem{beispiel}[theorem]{Beispiel}
-\newtheorem{problem}{Problem}
-\theoremstyle{nonumberplain}
-\renewtheorem{bemerkung*}{Bemerkung}
-\renewtheorem{beispiel*}{Beispiel}
-\renewtheorem{problem*}{Problem}
-
-% Algorithmen anpassen %
-\renewcommand{\algorithmicrequire}{\textit{Eingabe:}}
-\renewcommand{\algorithmicensure}{\textit{Ausgabe:}}
-\floatname{algorithm}{Algorithmus}
-\renewcommand{\listalgorithmname}{Algorithmenverzeichnis}
-\renewcommand{\algorithmiccomment}[1]{\color{grau}{// #1}}
 
 % Zeilenabstand einstellen %
 \renewcommand{\baselinestretch}{1.25}
+
 % Floating-Umgebungen anpassen %
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.8}
-% Abkuerzungen richtig formatieren %
+
+% Abkürzungen richtig formatieren %
 \usepackage{xspace}
 \newcommand{\vgl}{vgl.\@\xspace} 
 \newcommand{\zB}{z.\nolinebreak[4]\hspace{0.125em}\nolinebreak[4]B.\@\xspace}
