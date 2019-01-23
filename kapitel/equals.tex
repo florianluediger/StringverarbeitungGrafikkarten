@@ -8,4 +8,29 @@
 
 \section{Vorstellung der Messergebnisse}
 
+\begin{tikzpicture}
+	\begin{axis}[
+	ybar,		% Säulendiagramm
+	xlabel={Selektivität},	% Achsenbeschriftung
+	xtick=data,
+	xticklabels from table={daten/type.csv}{Selectivity},	% Beschriftung der Markierungen 
+	width=\textwidth,	% Diagrammbreite
+	bar width=0.2cm,	% Breite der Säulen
+	ylabel={Laufzeit},	% Achsenbeschritung
+	ymin=0,		% Säulen stehen auf der X-Achse
+	%legend style={at={(0,0)}}
+	legend pos=north west,		% Legende am oberen linken Rand positionieren
+	legend style={legend cell align=left} % Text linksbündig anordnen
+	]
+		\addplot table [x expr=\coordindex, y=equals]{daten/type.csv};
+		\addlegendentry{Naiv};
+		\addplot table [x expr=\coordindex, y=buffer]{daten/type.csv};
+		\addlegendentry{Mit Divergence Buffer}
+		\addplot table [x expr=\coordindex, y=unroll_2]{daten/type.csv};
+		\addlegendentry{Mit Loop Unrolling 2}
+		\addplot table [x expr=\coordindex, y=unroll_3]{daten/type.csv};
+		\addlegendentry{Mit Loop Unrolling 3}
+	\end{axis}
+\end{tikzpicture}
+
 \section{Diskussion der Ergebnisse}
