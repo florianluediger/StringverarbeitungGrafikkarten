@@ -17,7 +17,7 @@
 	ybar,		% Säulendiagramm
 	xlabel={Selektivität},	% Achsenbeschriftung
 	xtick=data,
-	xticklabels from table={daten/type.csv}{Selectivity},	% Beschriftung der Markierungen 
+	xticklabels from table={daten/type_equals.csv}{Selectivity},	% Beschriftung der Markierungen 
 	width=\textwidth,	% Diagrammbreite
 	bar width=0.2cm,	% Breite der Säulen
 	ylabel={Laufzeit},	% Achsenbeschritung
@@ -26,14 +26,54 @@
 	legend pos=north west,		% Legende am oberen linken Rand positionieren
 	legend style={legend cell align=left} % Text linksbündig anordnen
 	]
-		\addplot table [x expr=\coordindex, y=equals]{daten/type.csv};
+		\addplot table [x expr=\coordindex, y=equals]{daten/type_equals.csv}; 
 		\addlegendentry{Naiv};
-		\addplot table [x expr=\coordindex, y=buffer]{daten/type.csv};
+		\addplot table [x expr=\coordindex, y=buffer]{daten/type_equals.csv};
 		\addlegendentry{Mit Divergence Buffer}
-		\addplot table [x expr=\coordindex, y=unroll_2]{daten/type.csv};
+		\addplot table [x expr=\coordindex, y=unroll_2]{daten/type_equals.csv};
 		\addlegendentry{Mit Loop Unrolling 2}
-		\addplot table [x expr=\coordindex, y=unroll_3]{daten/type.csv};
+		\addplot table [x expr=\coordindex, y=unroll_3]{daten/type_equals.csv};
 		\addlegendentry{Mit Loop Unrolling 3}
+	\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+	\begin{axis}[
+	ybar,		% Säulendiagramm
+	xlabel={Selektivität},	% Achsenbeschriftung
+	xtick=data,
+	xticklabels from table={daten/type_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
+	width=\textwidth,	% Diagrammbreite
+	bar width=0.4cm,	% Breite der Säulen
+	ylabel={Laufzeit},	% Achsenbeschritung
+	ymin=0,		% Säulen stehen auf der X-Achse
+	legend pos=north west,		% Legende am oberen linken Rand positionieren
+	legend style={legend cell align=left} % Text linksbündig anordnen
+	]
+		\addplot table [x expr=\coordindex, y=equals]{daten/type_prefix.csv}; 
+		\addlegendentry{Naiv};
+		\addplot table [x expr=\coordindex, y=buffer]{daten/type_prefix.csv};
+		\addlegendentry{Mit Divergence Buffer}
+	\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+	\begin{axis}[
+	ybar,		% Säulendiagramm
+	xlabel={Selektivität},	% Achsenbeschriftung
+	xtick=data,
+	xticklabels from table={daten/dblp_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
+	width=\textwidth,	% Diagrammbreite
+	bar width=0.4cm,	% Breite der Säulen
+	ylabel={Laufzeit},	% Achsenbeschritung
+	ymin=0,		% Säulen stehen auf der X-Achse
+	legend pos=north west,		% Legende am oberen linken Rand positionieren
+	legend style={legend cell align=left} % Text linksbündig anordnen
+	]
+		\addplot table [x expr=\coordindex, y=equals]{daten/dblp_prefix.csv}; 
+		\addlegendentry{Naiv};
+		\addplot table [x expr=\coordindex, y=buffer]{daten/dblp_prefix.csv};
+		\addlegendentry{Mit Divergence Buffer}
 	\end{axis}
 \end{tikzpicture}
 
