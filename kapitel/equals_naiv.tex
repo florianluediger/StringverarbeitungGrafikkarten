@@ -10,9 +10,171 @@ Außerdem wird eine leichte Anpassung an dem Verfahren vorgenommen, sodass ein a
 \section{Vorgehen}
 
 Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tiefgehende Optimierungen umgesetzt.
+Das hier vorgestellte Verfahren soll eine lange Liste von Zeichenketten mit einem anderen String vergleichen.
+Der Kontext entspricht somit einer Datenbankanfrage, in der eine Selektion über eine Spalte mit String-Daten durchgeführt wird.
 
+\tikzset{t_label/.style={rectangle,draw,minimum size=0.4cm,minimum width=2.1cm,inner sep=0pt}}
+\tikzset{t_length/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt,fill=blue!30}}
+\tikzset{t_active/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt}}
+\tikzset{t_inactive/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt,fill=black!30}}
+\tikzset{t_blank/.style={rectangle,minimum size=0.4cm,inner sep=0pt}}
+
+\begin{figure}[t]
+	\centering
+	\begin{tikzpicture}
+		\begin{scope}
+			\node (l1) {\texttt{Datensatz:}};
+			\node[below = 0cm of l1] (l2) {\texttt{OMA, OPA, OTTO,}};
+			\node[below = 0cm of l2] (l3) {\texttt{AHA, OMA, OHM,}};
+			\node[below = 0cm of l3] (l4) {\texttt{OHA, DBMS, SQL}};
+		\end{scope}
+		\begin{scope}[xshift=4cm]
+			\node[t_label] (0s) {\texttt{Suchstr.}};
+			\node[t_label,below = 0.1cm of 0s] (0a) {\texttt{Thread 1}};
+			\node[t_label,below = 0.1cm of 0a] (0b) {\texttt{Thread 2}};
+			\node[t_label,below = 0.1cm of 0b] (0c) {\texttt{Thread 3}};
+			
+			\node[t_length, right = 0.3cm of 0s] (1s) {\texttt{3}};
+			\node[t_length, right = 0.3cm of 0a] (1a) {\texttt{3}};
+			\node[t_length, right = 0.3cm of 0b] (1b) {\texttt{3}};
+			\node[t_length, right = 0.3cm of 0c] (1c) {\texttt{4}};
+			
+			\node[t_active, right = 0cm of 1s] (2s) {\texttt{O}};
+			\node[t_active, right = 0cm of 1a] (2a) {\texttt{O}};
+			\node[t_active, right = 0cm of 1b] (2b) {\texttt{O}};
+			\node[t_inactive, right = 0cm of 1c] (2c) {};
+			
+			\node[t_active, right = 0cm of 2s] (3s) {\texttt{M}};
+			\node[t_active, right = 0cm of 2a] (3a) {\texttt{M}};
+			\node[t_active, right = 0cm of 2b] (3b) {\texttt{P}};
+			\node[t_inactive, right = 0cm of 2c] (3c) {};
+			
+			\node[t_active, right = 0cm of 3s] (4s) {\texttt{A}};
+			\node[t_active, right = 0cm of 3a] (4a) {\texttt{A}};
+			\node[t_inactive, right = 0cm of 3b] (4b) {};
+			\node[t_inactive, right = 0cm of 3c] (4c) {};
+			
+			\node[t_blank, right = 0cm of 4s] (5s) {};
+			\node[t_active, right = 0cm of 4a,fill=green!30] (5a) {\Checkmark};
+			\node[t_active, right = 0cm of 4b,fill=red!30] (5b) {\XSolid};
+			\node[t_active, right = 0cm of 4c,fill=red!30] (5c) {\XSolid};
+			
+			\node[t_length, right = 0.1cm of 5s] (6s) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 5a] (6a) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 5b] (6b) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 5c] (6c) {\texttt{3}};
+			
+			\node[t_active, right = 0cm of 6s] (7s) {\texttt{O}};
+			\node[t_active, right = 0cm of 6a] (7a) {\texttt{A}};
+			\node[t_active, right = 0cm of 6b] (7b) {\texttt{O}};
+			\node[t_active, right = 0cm of 6c] (7c) {\texttt{O}};
+			
+			\node[t_active, right = 0cm of 7s] (8s) {\texttt{M}};
+			\node[t_inactive, right = 0cm of 7a] (8a) {};
+			\node[t_active, right = 0cm of 7b] (8b) {\texttt{M}};
+			\node[t_active, right = 0cm of 7c] (8c) {\texttt{H}};
+			
+			\node[t_active, right = 0cm of 8s] (9s) {\texttt{A}};
+			\node[t_inactive, right = 0cm of 8a] (9a) {};
+			\node[t_active, right = 0cm of 8b] (9b) {\texttt{A}};
+			\node[t_inactive, right = 0cm of 8c] (9c) {};
+			
+			\node[t_blank, right = 0cm of 9s] (10s) {};
+			\node[t_active, right = 0cm of 9a,fill=red!30] (10a) {\XSolid};
+			\node[t_active, right = 0cm of 9b,fill=green!30] (10b) {\Checkmark};
+			\node[t_active, right = 0cm of 9c,fill=red!30] (10c) {\XSolid};
+			
+			\node[t_length, right = 0.1cm of 10s] (11s) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 10a] (11a) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 10b] (11b) {\texttt{4}};
+			\node[t_length, right = 0.1cm of 10c] (11c) {\texttt{3}};
+			
+			\node[t_active, right = 0cm of 11s] (12s) {\texttt{O}};
+			\node[t_active, right = 0cm of 11a] (12a) {\texttt{O}};
+			\node[t_inactive, right = 0cm of 11b] (12b) {};
+			\node[t_active, right = 0cm of 11c] (12c) {\texttt{S}};
+			
+			\node[t_active, right = 0cm of 12s] (13s) {\texttt{M}};
+			\node[t_active, right = 0cm of 12a] (13a) {\texttt{H}};
+			\node[t_inactive, right = 0cm of 12b] (13b) {};
+			\node[t_inactive, right = 0cm of 12c] (13c) {};
+			
+			\node[t_blank, right = 0cm of 13s] (14s) {};
+			\node[t_active, right = 0cm of 13a,fill=red!30] (14a) {\XSolid};
+			\node[t_active, right = 0cm of 13b,fill=red!30] (14b) {\XSolid};
+			\node[t_active, right = 0cm of 13c,fill=red!30] (14c) {\XSolid};
+		\end{scope}
+		
+		\begin{scope}
+			\node[below = 0.5cm of 1c] (laenge) {\texttt{Längenvergleich}};
+			\node[below = -0.2cm of 1c] (laenge_arrow) {};
+			\draw [->] (laenge) -- (laenge_arrow);
+			
+			\node[below right = -0.2cm and -0.08cm of 5c] (neue_daten_arrow) {};
+			\node[below = 1.3cm of neue_daten_arrow, align = center] (neue_daten) {\texttt{Ergebnis schreiben,} \\ \texttt{neue Daten laden}};
+			\draw [->] (neue_daten) -- (neue_daten_arrow);
+			
+			\node[below = 0.5cm of 14c] (abbruch) {\texttt{frühzeitiger Abbruch}};
+			\node[below = -0.2cm of 14c] (abbruch_arrow) {};
+			\draw [->] (abbruch) -- (abbruch_arrow);
+		\end{scope}
+	\end{tikzpicture}
+	\caption{Funktionsweise des Algorithmus innerhalb eines Warps mit drei Threads}
+	\label{fig:equals_naiv_algorithmus}
+\end{figure}
+
+Zur Durchführung dieser Operation wird jedem Thread der GPU eine Zeichenkette aus dem Datensatz zugewiesen.
+Zunächst wird überprüft, ob die Länge des Strings mit der des Suchstrings übereinstimmt, sodass der entsprechende Eintrag direkt verworfen werden kann.
+Sind die Längen identisch, werden beide Zeichenketten Zeichen für Zeichen durchlaufen und diese an jeder Stelle auf Gleichheit überprüft.
+Sobald eine Ungleichheit gefunden wurde, wird ein entsprechendes Flag gesetzt und die weiteren Zeichen müssen nicht mehr genauer betrachtet werden.
+
+Sämtliche Threads innerhalb eines Warp werden entsprechend des Verarbeitungsmodells der GPU parallel abgearbeitet.
+Somit sind die Positionen, an denen die Strings verglichen werden ebenfalls für alle Threads identisch.
+Sobald der Vergleichsstring im gesamten Warp vollständig durchlaufen wurden, wird das Zwischenergebnis geschrieben.
+Im Falle dieser konkreten Untersuchung wird hier der Einfachheit halber lediglich die Anzahl der passenden Zeichenketten gezählt.
+Es wäre allerdings auch denkbar, dass die Indizes der entsprechenden Einträge gespeichert wird, oder in einer Pipelining-Umgebung der Eintrag an die nächste Operation in der Pipeline weitergegeben wird.
+Sollten alle Threads in dem Warp vorzeitig feststellen, dass keiner der Strings mit dem Suchstring übereinstimmt, wird die aktuelle Untersuchung vorzeitig abgebrochen.
+
+Schließlich wird jedem Thread eine neue Zeichenkette aus dem Datensatz zugewiesen, sodass das Verfahren im weiteren Verlauf wiederholt wird.
+Sobald der gesamte Datensatz durchlaufen wurde, ist die Berechnung abgeschlossen.
+
+In Abbildung \ref{fig:equals_naiv_algorithmus} ist der Ablauf des Algorithmus innerhalb eines Warps mit drei Threads dargestellt.
+Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnung frühzeitig abgebrochen werden kann und an welchen Stellen das Ergebnis geschrieben wird und neue Daten aus dem Datensatz geholt werden.
 
 \section{Implementierung}
+
+Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tiefgehende Optimierungen umgesetzt.
+Dies gibt Gelegenheit dazu, die Programmierung einfacher Algorithmen mithilfe der CUDA Schnittstelle für Grafikkarten darzustellen.
+Da die Analyse im Rahmen dieser Arbeit innerhalb einer Pipelining-Umgebung durchgeführt werden, lassen sich hier außerdem einige Besonderheiten der Implementierung erläutern.
+
+\newpage
+
+\begin{lstlisting}[language=C++,
+caption=Methodensignatur des Kernels,
+label=naive_equals_signature]
+__global__
+void naiveKernel(
+	int *char_offset,         // indices of the first letter of every string
+	char *data_content,       // concatenated list of compare strings 
+	char *search_string,      // string that will be searched for
+	int search_length,        // length of the search string
+	int line_count,           // number of lines in the data set
+	int *number_of_matches) { // return value for the number of matches
+	// implementation
+}
+\end{lstlisting}
+
+Für die Umsetzung des Gleichheitstests ist am interessantesten, wie lange das Ausführen des eigentlichen Kernels zum Abgleich des Datensatzes dauert.
+Dieser Kernel erwartet, dass die benötigten Daten vorher vom Hauptspeicher in den Speicherbereich der GPU kopiert wurden und dort zur Verfügung stehen.
+In Listing \ref{naive_equals_signature} ist die Methodensignatur des Kernels für den einfachen Stringvergleich dargestellt.
+
+Die Position des Datensatzes, welcher mit dem Vergleichsstring abgeglichen werden soll, wird über den Zeiger \texttt{data\_content} übergeben.
+Der Datensatz besteht in einer Aneinanderreihung der Entsprechenden Zeichenketten ohne Trennzeichen.
+Damit daraus die ursprünglichen Strings extrahiert werden können, gibt es einen zweiten Array, welcher Informationen über die Indizes der Einzelstrings innerhalb des Datensatzes enthält.
+Die Position dieser Informationen wird über die Variable \texttt{char\_offset} übergeben.
+Ebenfalls muss natürlich ein Zeiger auf den Suchstring und dessen Länge in den entsprechenden Parametern \texttt{search\_string} und \texttt{search\_string\_length} mitgeliefert werden.
+Um die Berechnung rechtzeitig vor Speicherüberschreitungen abbrechen zu können, wird schließlich noch die Variable \texttt{line\_count} übergeben, welche die Anzahl der Zeichenketten im Datensatz beschreibt.
+Der letzte Parameter \texttt{number\_of\_matches} dient dazu, dass an die entsprechende Speicherstelle das Ergebnis der Berechnung geschrieben werden kann und dieses aus dem Hauptprogramm heraus wieder ausgelesen werden kann.
 
 \newpage
 
@@ -20,14 +182,7 @@ Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings 
 	caption=Naive Implementierung des String-Vergleichs,
 	label=naive_equals]
 __global__
-void naiveKernel(
-int *char_offset,         // indices of the first letter of every string
-char *data_content,       // concatenated list of compare strings 
-char *search_string,      // string that will be searched for
-int search_length,        // length of the search string
-int line_count,           // number of lines in the data set
-int *number_of_matches) { // return value for the number of matches
-
+void naiveKernel( /* parameters */ ) {
 	// global index of the current thread,
 	// used as the iterator in this case
 	unsigned loop_var = ((blockIdx.x * blockDim.x) + threadIdx.x);
@@ -36,45 +191,56 @@ int *number_of_matches) { // return value for the number of matches
 	unsigned step = (blockDim.x * gridDim.x);
 	
 	bool active = true;
-	bool flush_pipeline = 0;
+	bool flush_pipeline = false;
 	
 	while(!flush_pipeline) {
 		// element index must not be higher than line count
 		active = loop_var < line_count;
 		
-		// break computation when every line is finished and therefore inactive
+		// break computation when every lane is finished and therefore inactive
 		flush_pipeline = !__ballot_sync(ALL_LANES, active);
 		
 		data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
 		
-		// if the lengths of the strings don't match,
-		// the string can be discarded immediately
+		// if string lengths are unequals, discard
 		if (active && data_length != search_length)
 			active = false;
 		
 		int search_id = 0;
 		
-		// iterate over both strings till the end
-		// or until a non-matching character has been found
-			while(__any_sync(0xFFFFFFFF, active) && search_id < search_length) {
-			
+		// iterate over strings completely or until they don't match anymore
+		while(__any_sync(0xFFFFFFFF, active) && search_id < search_length) {
 			int data_id = search_id + char_offset[loop_var];
 			
 			// when strings don't match, inactivate the lane
 			if (active && data_content[data_id] != search_string[search_id])
-				active = false;
+			active = false;
 			
 			search_id++;
 		}
 		
-		// when comparison finishes without being inactivated, 
-		// a match has been found 
+		// if still active, a match has been found
 		if (active)
-		atomicAdd(number_of_matches, 1);
+			atomicAdd(number_of_matches, 1);
 		
 		loop_var += step;
 	}
 }
 \end{lstlisting}
+
+In Listing \ref{naive_equals} ist die Implementierung des Algorithmus dargestellt, welcher alle Strings aus dem Datensatz mit dem Suchstring vergleicht und daraufhin die Anzahl der passenden Zeichenketten zurückliefert.
+Zunächst wird der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
+Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
+Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\text{Gridgröße} \times \text{Blockgröße}}$ berechnen.
+
+Die Variable \texttt{active} zeigt im Algorithmus an, ob das aktuell untersuchte Datenelement noch aktiv geprüft wird, oder dieses bereits verworfen wurde.
+Somit zeigt diese Variable auch an, ob der aktuelle Thread aktiv läuft, oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
+Im ersten Schritt wird für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
+Sind die Längen identisch, wird über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt.
+Entsprechend des Ergebnisses läuft die Schleife bis zum Ende durch und die Anzahl passender Elemente im Datensatz kann erhöht werden, oder die Untersuchung wird vorzeitig abgebrochen und der Thread als inaktiv markiert.
+
+%TODO Bezug zum Pipelining herstellen
+
+\section{Nachteile des Verfahrens}
 
 \section{Präfixtest als alternativer Workload}
