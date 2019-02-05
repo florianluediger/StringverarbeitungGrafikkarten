@@ -23,34 +23,34 @@ Der Kontext entspricht somit einer Datenbankanfrage, in der eine Selektion über
 	\centering
 	\begin{tikzpicture}
 		\begin{scope}
-			\node (l1) {\texttt{Datensatz:}};
-			\node[below = 0cm of l1] (l2) {\texttt{OMA, OPA, OTTO,}};
-			\node[below = 0cm of l2] (l3) {\texttt{AHA, OMA, OHM,}};
-			\node[below = 0cm of l3] (l4) {\texttt{OHA, DBMS, SQL}};
+			\node (l1) {\textsf{Datensatz:}};
+			\node[below = 0cm of l1] (l2) {\textsf{OMA, OPA, OTTO,}};
+			\node[below = 0cm of l2] (l3) {\textsf{AHA, OMA, OHM,}};
+			\node[below = 0cm of l3] (l4) {\textsf{OHA, DBMS, SQL}};
 		\end{scope}
 		\begin{scope}[xshift=4cm]
-			\node[t_label] (0s) {\texttt{Suchstr.}};
-			\node[t_label,below = 0.1cm of 0s] (0a) {\texttt{Thread 1}};
-			\node[t_label,below = 0.1cm of 0a] (0b) {\texttt{Thread 2}};
-			\node[t_label,below = 0.1cm of 0b] (0c) {\texttt{Thread 3}};
+			\node[t_label] (0s) {\textsf{Suchstr.}};
+			\node[t_label,below = 0.1cm of 0s] (0a) {\textsf{Thread 1}};
+			\node[t_label,below = 0.1cm of 0a] (0b) {\textsf{Thread 2}};
+			\node[t_label,below = 0.1cm of 0b] (0c) {\textsf{Thread 3}};
 			
-			\node[t_length, right = 0.3cm of 0s] (1s) {\texttt{3}};
-			\node[t_length, right = 0.3cm of 0a] (1a) {\texttt{3}};
-			\node[t_length, right = 0.3cm of 0b] (1b) {\texttt{3}};
-			\node[t_length, right = 0.3cm of 0c] (1c) {\texttt{4}};
+			\node[t_length, right = 0.3cm of 0s] (1s) {\textsf{3}};
+			\node[t_length, right = 0.3cm of 0a] (1a) {\textsf{3}};
+			\node[t_length, right = 0.3cm of 0b] (1b) {\textsf{3}};
+			\node[t_length, right = 0.3cm of 0c] (1c) {\textsf{4}};
 			
-			\node[t_active, right = 0cm of 1s] (2s) {\texttt{O}};
-			\node[t_active, right = 0cm of 1a] (2a) {\texttt{O}};
-			\node[t_active, right = 0cm of 1b] (2b) {\texttt{O}};
+			\node[t_active, right = 0cm of 1s] (2s) {\textsf{O}};
+			\node[t_active, right = 0cm of 1a] (2a) {\textsf{O}};
+			\node[t_active, right = 0cm of 1b] (2b) {\textsf{O}};
 			\node[t_inactive, right = 0cm of 1c] (2c) {};
 			
-			\node[t_active, right = 0cm of 2s] (3s) {\texttt{M}};
-			\node[t_active, right = 0cm of 2a] (3a) {\texttt{M}};
-			\node[t_active, right = 0cm of 2b] (3b) {\texttt{P}};
+			\node[t_active, right = 0cm of 2s] (3s) {\textsf{M}};
+			\node[t_active, right = 0cm of 2a] (3a) {\textsf{M}};
+			\node[t_active, right = 0cm of 2b] (3b) {\textsf{P}};
 			\node[t_inactive, right = 0cm of 2c] (3c) {};
 			
-			\node[t_active, right = 0cm of 3s] (4s) {\texttt{A}};
-			\node[t_active, right = 0cm of 3a] (4a) {\texttt{A}};
+			\node[t_active, right = 0cm of 3s] (4s) {\textsf{A}};
+			\node[t_active, right = 0cm of 3a] (4a) {\textsf{A}};
 			\node[t_inactive, right = 0cm of 3b] (4b) {};
 			\node[t_inactive, right = 0cm of 3c] (4c) {};
 			
@@ -59,24 +59,24 @@ Der Kontext entspricht somit einer Datenbankanfrage, in der eine Selektion über
 			\node[t_active, right = 0cm of 4b,fill=red!30] (5b) {\XSolid};
 			\node[t_active, right = 0cm of 4c,fill=red!30] (5c) {\XSolid};
 			
-			\node[t_length, right = 0.1cm of 5s] (6s) {\texttt{3}};
-			\node[t_length, right = 0.1cm of 5a] (6a) {\texttt{3}};
-			\node[t_length, right = 0.1cm of 5b] (6b) {\texttt{3}};
-			\node[t_length, right = 0.1cm of 5c] (6c) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 5s] (6s) {\textsf{3}};
+			\node[t_length, right = 0.1cm of 5a] (6a) {\textsf{3}};
+			\node[t_length, right = 0.1cm of 5b] (6b) {\textsf{3}};
+			\node[t_length, right = 0.1cm of 5c] (6c) {\textsf{3}};
 			
-			\node[t_active, right = 0cm of 6s] (7s) {\texttt{O}};
-			\node[t_active, right = 0cm of 6a] (7a) {\texttt{A}};
-			\node[t_active, right = 0cm of 6b] (7b) {\texttt{O}};
-			\node[t_active, right = 0cm of 6c] (7c) {\texttt{O}};
+			\node[t_active, right = 0cm of 6s] (7s) {\textsf{O}};
+			\node[t_active, right = 0cm of 6a] (7a) {\textsf{A}};
+			\node[t_active, right = 0cm of 6b] (7b) {\textsf{O}};
+			\node[t_active, right = 0cm of 6c] (7c) {\textsf{O}};
 			
-			\node[t_active, right = 0cm of 7s] (8s) {\texttt{M}};
+			\node[t_active, right = 0cm of 7s] (8s) {\textsf{M}};
 			\node[t_inactive, right = 0cm of 7a] (8a) {};
-			\node[t_active, right = 0cm of 7b] (8b) {\texttt{M}};
-			\node[t_active, right = 0cm of 7c] (8c) {\texttt{H}};
+			\node[t_active, right = 0cm of 7b] (8b) {\textsf{M}};
+			\node[t_active, right = 0cm of 7c] (8c) {\textsf{H}};
 			
-			\node[t_active, right = 0cm of 8s] (9s) {\texttt{A}};
+			\node[t_active, right = 0cm of 8s] (9s) {\textsf{A}};
 			\node[t_inactive, right = 0cm of 8a] (9a) {};
-			\node[t_active, right = 0cm of 8b] (9b) {\texttt{A}};
+			\node[t_active, right = 0cm of 8b] (9b) {\textsf{A}};
 			\node[t_inactive, right = 0cm of 8c] (9c) {};
 			
 			\node[t_blank, right = 0cm of 9s] (10s) {};
@@ -84,18 +84,18 @@ Der Kontext entspricht somit einer Datenbankanfrage, in der eine Selektion über
 			\node[t_active, right = 0cm of 9b,fill=green!30] (10b) {\Checkmark};
 			\node[t_active, right = 0cm of 9c,fill=red!30] (10c) {\XSolid};
 			
-			\node[t_length, right = 0.1cm of 10s] (11s) {\texttt{3}};
-			\node[t_length, right = 0.1cm of 10a] (11a) {\texttt{3}};
-			\node[t_length, right = 0.1cm of 10b] (11b) {\texttt{4}};
-			\node[t_length, right = 0.1cm of 10c] (11c) {\texttt{3}};
+			\node[t_length, right = 0.1cm of 10s] (11s) {\textsf{3}};
+			\node[t_length, right = 0.1cm of 10a] (11a) {\textsf{3}};
+			\node[t_length, right = 0.1cm of 10b] (11b) {\textsf{4}};
+			\node[t_length, right = 0.1cm of 10c] (11c) {\textsf{3}};
 			
-			\node[t_active, right = 0cm of 11s] (12s) {\texttt{O}};
-			\node[t_active, right = 0cm of 11a] (12a) {\texttt{O}};
+			\node[t_active, right = 0cm of 11s] (12s) {\textsf{O}};
+			\node[t_active, right = 0cm of 11a] (12a) {\textsf{O}};
 			\node[t_inactive, right = 0cm of 11b] (12b) {};
-			\node[t_active, right = 0cm of 11c] (12c) {\texttt{S}};
+			\node[t_active, right = 0cm of 11c] (12c) {\textsf{S}};
 			
-			\node[t_active, right = 0cm of 12s] (13s) {\texttt{M}};
-			\node[t_active, right = 0cm of 12a] (13a) {\texttt{H}};
+			\node[t_active, right = 0cm of 12s] (13s) {\textsf{M}};
+			\node[t_active, right = 0cm of 12a] (13a) {\textsf{H}};
 			\node[t_inactive, right = 0cm of 12b] (13b) {};
 			\node[t_inactive, right = 0cm of 12c] (13c) {};
 			
@@ -103,18 +103,22 @@ Der Kontext entspricht somit einer Datenbankanfrage, in der eine Selektion über
 			\node[t_active, right = 0cm of 13a,fill=red!30] (14a) {\XSolid};
 			\node[t_active, right = 0cm of 13b,fill=red!30] (14b) {\XSolid};
 			\node[t_active, right = 0cm of 13c,fill=red!30] (14c) {\XSolid};
+			
+			\node[above = 0.1cm of 1s] (arr1) {};
+			\node[above = 0.1cm of 14s] (arr2) {};
+			\draw[->, thick] (arr1) -- (arr2) node[midway, above] {{\large\textsf{Ausführungszeit}}};
 		\end{scope}
 		
 		\begin{scope}
-			\node[below = 0.5cm of 1c] (laenge) {\texttt{Längenvergleich}};
+			\node[below = 0.5cm of 1c] (laenge) {\textsf{Längenvergleich}};
 			\node[below = -0.2cm of 1c] (laenge_arrow) {};
 			\draw [->] (laenge) -- (laenge_arrow);
 			
 			\node[below right = -0.2cm and -0.08cm of 5c] (neue_daten_arrow) {};
-			\node[below = 1.3cm of neue_daten_arrow, align = center] (neue_daten) {\texttt{Ergebnis schreiben,} \\ \texttt{neue Daten laden}};
+			\node[below = 1.3cm of neue_daten_arrow, align = center] (neue_daten) {\textsf{Ergebnis schreiben,} \\ \textsf{neue Daten laden}};
 			\draw [->] (neue_daten) -- (neue_daten_arrow);
 			
-			\node[below = 0.5cm of 14c] (abbruch) {\texttt{frühzeitiger Abbruch}};
+			\node[below = 0.5cm of 14c] (abbruch) {\textsf{frühzeitiger Abbruch}};
 			\node[below = -0.2cm of 14c] (abbruch_arrow) {};
 			\draw [->] (abbruch) -- (abbruch_arrow);
 		\end{scope}
