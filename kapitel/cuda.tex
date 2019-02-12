@@ -15,9 +15,15 @@ Zur Speicherung der zu verarbeitenden Daten gibt es eigenständige Speichermodul
 Für die NVIDIA GTX950, welche im Folgenden als Beispiel genutzt werden soll, beträgt die Größe dieses Speichers 2 GB.
 Über eine PCI-Express-Anbindung wird die Kommunikation mit dem Hauptprozessor und die Übertragung der Daten zwischen den Speicherbereichen realisiert.
 
-Die GPU wiederum lässt sich in kleinere Module, sogenannte \emph{Streaming Multiprocessors (SM)}, unterteilen, welche jeweils eigenständige Recheneinheiten darstellen.
+\begin{figure}[ht]
+	\includegraphics[]{bilder/gpu_architecture.pdf}
+	\caption{Architektur einer GPU \cite{Volkov2016}}
+	\label{gpu_architecture}
+\end{figure}
+
+Wie in Abbildung \ref{gpu_architecture} dargestellt, lässt sich die GPU wiederum in kleinere Module, sogenannte \emph{Streaming Multiprocessors (SM)}, unterteilen, welche jeweils eigenständige Recheneinheiten darstellen.
 Eine GTX950 besitzt beispielsweise sechs dieser Streaming Multiprocessors, welche sich ebenfalls in kleinere Einheiten unterteilen lassen.
-Die SM bestehen aus vier unabhängigen Blöcken von Rechenkernen, welche jeweils 32 skalare Recheneinheiten beinhalten.
+Die SM bestehen aus vier unabhängigen Blöcken von Rechenkernen, welche jeweils 32 skalare Recheneinheiten, auch \emph{CUDA-Kerne} genannt, beinhalten.
 Jeder dieser Blöcke besitzt einen eigenen Scheduler und einige Unterstützungselektronik, sodass diese logisch gesehen ebenfalls unabhängig voneinander arbeiten können. \cite{Nvidia2014}
 Bei sechs Streaming Multiprocessors mit jeweils vier Blöcken und 32 Recheneinheiten pro Block besitzt die GTX950 also 768 Kerne, welche über eine Programmierschnittstelle angesprochen werden können.
 
@@ -41,15 +47,15 @@ Die Trennung in mehrere Threads, bietet hierbei den Vorteil, dass eigene Registe
 Prozesse laufen außerdem zwar logisch parallel ab, allerdings muss dies nicht notwendigerweise physikalisch auch so sein, sodass in einigen Fällen eine höhere Leistung erzielt werden kann.
 Für die optimale Performanz einzelner Operationen sollte allerdings gewährleistet sein, dass die Threads größtenteils synchron ausgeführt werden.
 
-Bei der Verwendung von Branching-Instruktionen kann es vorkommen, dass unterschiedliche Threads verschiedene Kontrollflüsse durchlaufen.
+Bei der Verwendung von Branching-Instruktionen kann es vorkommen, dass unterschiedliche Threads verschiedene Kontrollflüsse durchlaufen, was auch als \emph{Divergenz} bezeichnet wird.
 Da allerdings alle Threads identische Instruktionen ausführen müssen, führt dies dazu, dass sämtliche Threads in einem Warp alle notwendigen Kontrollflüsse durchlaufen und dabei gegebenenfalls das Ergebnis verwerfen, wenn diese sich logisch gesehen in einem anderen Zweig befinden.
 Alle Threads, für die der aktuell bearbeitete Kontrollfluss nicht relevant ist, werden als inaktiv bezeichnet.
 Inaktive Threads warten somit lediglich auf die aktiven Threads, bis diese die Arbeit innerhalb ihres Kontrollflusses abgeschlossen haben, sodass an dieser Stelle gegebenenfalls massiv Rechenleistung verschwendet wird.
-Das ist auch der Grund dafür, dass die Verarbeitung von Strings auf Grafikkarten aufgrund ihrer variablen Länge problematisch ist.
+In dieser Problematik liegt der Grund dafür, dass die Verarbeitung von Strings auf Grafikkarten aufgrund ihrer variablen Länge problematisch ist, da die auftretenden Kontrollflüsse divergieren.
 
 \section{Synchronisation von Threads}
 
-Der Compiler und die GPU selbst versuchen innerhalb eines Warps die Anzahl der synchron ausgeführten Operationen zu maximieren, da dadurch eine höhere Leistung erzielt wird.
+Der Compiler und die GPU selbst versuchen innerhalb eines Warps die Anzahl der synchron ausgeführten Operationen zu maximieren, da dadurch eine höhere Leistung erzielt wird. \cite{Nickolls2009}
 Diese Synchronisation kann allerdings auch explizit durch den Entwickler erfolgen, indem er die dafür vorgesehenen Operationen der Entwicklungsschnittstelle verwendet.
 Das Verwenden solcher Operationen führt dazu, dass alle Threads an dieser Stelle aufeinander warten müssen.
 
@@ -85,10 +91,10 @@ Zum Durchlaufen eines solchen Speicherbereiches in einem sequenziellen Programm 
 Bei einer parallelen Architektur würden so allerdings sämtliche Threads über den gesamten Datensatz laufen, anstatt wie gewünscht den Datensatz auf die einzelnen Threads aufzuteilen.
 Zu diesem Zweck muss jeder Thread die Informationen darüber haben, welchen globalen Index er innerhalb des Grids hat, um mit dem entsprechenden Element aus dem Datensatz zu beginnen und wie viele Threads in dem Grid vorhanden sind, damit er den entsprechenden Abstand zu dem nächsten zu untersuchenden Element kennt.
 Der Index eines Threads berechnet sich aus $Blockindex * Blocksize + Threadindex$ und die Sprungweite ist definiert durch $Blocksize * Gridsize$.
-Die dafür zur Verfügung gestellten Variablen und eine beispielhafte Iteration über zwei Datensätze sind in Listing \ref{cuda_example} dargestellt. \cite{Harris2017}
+Die dafür zur Verfügung gestellten Variablen und eine beispielhafte Iteration über zwei Datensätze sind in Listing \ref{cuda_example} dargestellt.
 
 \begin{lstlisting}[language=C++,
-caption=Beispielhafter CUDA-Kernel zum Iterieren über zwei Datensätze,
+caption=Beispielhafter CUDA-Kernel zum Iterieren über zwei Datensätze \cite{Harris2017},
 label=cuda_example]
 __global__
 void add(int n, float *x, float *y)
