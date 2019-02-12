@@ -189,10 +189,10 @@ __global__
 void naiveKernel( /* parameters */ ) {
 	// global index of the current thread,
 	// used as the iterator in this case
-	unsigned loop_var = ((blockIdx.x * blockDim.x) + threadIdx.x);
+	unsigned loop_var = blockIdx.x * blockDim.x + threadIdx.x;
 	
 	// offset for the next element to be computed
-	unsigned step = (blockDim.x * gridDim.x);
+	unsigned step = blockDim.x * gridDim.x;
 	
 	bool active = true;
 	bool flush_pipeline = false;
