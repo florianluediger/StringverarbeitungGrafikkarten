@@ -1,6 +1,6 @@
-\chapter{Grundlagen der CUDA-Programmierung}
+\chapter{Grundlagen der GPU-Programmierung}
 
-Um die in dieser Arbeit vorgestellten Herausforderungen bei der Verarbeitung von String-Daten mit GPUs verstehen zu können, ist zunächst ein Verständnis der grundlegenden Eigenschaften aktueller Hardware nötig.
+Um die in dieser Arbeit vorgestellten Herausforderungen bei der Verarbeitung von String-Daten mit Grafikprozessoren, nachfolgend auch GPUs genannt, verstehen zu können, ist zunächst ein Verständnis der grundlegenden Eigenschaften aktueller Hardware nötig.
 Dabei beschränkt sich diese Untersuchung auf die Grafikkarten-Serie Maxwell von NVIDIA, die hier besprochenen Prinzipien lassen sich allerdings auch auf andere GPUs anderer Hersteller übertragen und finden dort ebenfalls Anwendung.
 
 \section{Grundaufbau einer NVIDIA-Grafikkarte}
@@ -18,7 +18,7 @@ Für die NVIDIA GTX950, welche im Folgenden als Beispiel genutzt werden soll, be
 Die GPU wiederum lässt sich in kleinere Module, sogenannte Streaming Multiprocessors (SM), unterteilen, welche jeweils eigenständige Recheneinheiten darstellen.
 Die GTX950 besitzt beispielsweise sechs dieser Streaming Multiprocessors, welche sich ebenfalls in kleinere Einheiten unterteilen lassen.
 Die SM bestehen aus vier unabhängigen Blöcken von Rechenkernen, welche jeweils 32 skalare Recheneinheiten beinhalten.
-Jeder dieser Blöcke besitzt einen eigenen Scheduler und einige Unterstützungselektronik, sodass diese logisch gesehen ebenfalls unabhängig voneinander arbeiten können.
+Jeder dieser Blöcke besitzt einen eigenen Scheduler und einige Unterstützungselektronik, sodass diese logisch gesehen ebenfalls unabhängig voneinander arbeiten können. \cite{Nvidia2014}
 Bei sechs Streaming Multiprocessors mit jeweils vier Blöcken und 32 Recheneinheiten pro Block, besitzt die GTX950 also 768 Kerne, welche über eine Programmierschnittstelle angesprochen werden können.
 
 \section{Scheduling auf GPUs}
@@ -58,13 +58,44 @@ Die Instruktionen werden von der Hardware unterstützt, sodass sie typischerweis
 Ein Beispiel für eine solche Operation ist das Auswerten eines Prädikates für alle Threads und anschließend das Erstellen einer Bitmaske, welche das Ergebnis der Auswertung für alle Threads enthält.
 Ein weiteres Beispiel ist das Generieren einer Maske für alle Threads, die in dem aktuellen Ausführungszweig aktiv sind.
 Schließlich können noch alle Threads ohne besondere Berechnung synchronisiert werden.
-Dies ist zum Beispiel nötig, wenn ein Thread aus dem Speicher lesen will, den andere Threads vorher beschreiben und dieser sicherstellen will, dass die Daten fertig geschrieben wurden.
+Dies ist zum Beispiel nötig, wenn ein Thread aus dem Speicher lesen will, den andere Threads vorher beschreiben und dieser sicherstellen will, dass die Daten fertig geschrieben wurden. \cite{Lin2018}
 
 \section{Shared Memory}
 
 Eine Kommunikation zwischen Threads innerhalb eines Blocks, kann über sogenannten Shared Memory geschehen.
 Dadurch können größere Mengen von Informationen ausgetauscht werden, als dies über die Synchronisations-Operationen effizient möglich wäre.
-Dieser Speicher ist um einige Größenordnungen schneller als der globale Speicher, da sich dieser direkt auf dem Chip der GPU befindet.
+Dieser Speicher ist um einige Größenordnungen schneller als der globale Speicher, da sich dieser direkt auf dem Chip der GPU befindet. \cite{Harris2013}
 Die Speichergröße innerhalb eines Streaming Multiprocessors ist allerdings beschränkt, weshalb die Anzahl der Threads ebenfalls beschränkt ist, sofern eine Menge Shared Memory von diesen benötigt wird.
 
 \section{Die CUDA-Programmierschnittstelle für C++}
+
+Für eine effiziente Entwicklung der hochgradig spezialisierten Grafikhardware stellt NVIDIA die CUDA-Programmierschnittstelle bereit.
+Diese ermöglicht es die GPU aus einer Hochsprache wie C++ heraus anzusprechen und durch verschiedene Hilfestellungen leicht ein funktionierendes Programm zu erstellen.
+Neben vordefinierten Schlüsselwörtern und Syntaxelementen bietet die Entwicklungsumgebung auch einen eigenen Compiler, welcher das erstellte Programm für den Einsatz auf der Grafikkarte optimiert.
+Für das Verständnis der Beispiele in dieser Arbeit sollen im Folgenden einige Grundkonzepte des Programmiermodells erläutert werden.
+
+Das Hauptprogramm von CUDA-Programmen besteht aus Code für die CPU, welcher dafür zuständig ist, die Grafikkarte für ihre Aufgabe vorzubereiten und anschließend das Unterprogramm aufzurufen, welches auf der GPU ausgeführt werden soll.
+Ein solches Unterprogramm wird Kernel genannt und besteht im einfachsten Falle aus einer einfachen Funktion, welche durch das Schlüsselwort \texttt{\_\_global\_\_} gekennzeichnet wird.
+In diesem Kontext wird der GPU-Code oft Device-Code und der CPU-Code Host-Code genannt.
+
+Auf die Schnittstellen zur Speicherverwaltung oder zur Festlegung der Grid-Konfiguration aus dem Host-Code heraus soll hier nicht weiter eingegangen werden, da für die untersuchten Kriterien lediglich der Device-Code interessante Aspekte bietet.
+
+Einem Kernel können verschiedene Parameter, wie Zeiger auf Speicherbereiche innerhalb des Grafikspeichers, aus dem Hauptprogramm übergeben werden.
+Zum Durchlaufen eines solchen Speicherbereiches in einem sequenziellen Programm wäre es ausreichend mit einem Index über das Feld zu iterieren und diesen nach jeder Iteration um eins zu erhöhen.
+Bei einer parallelen Architektur würden so allerdings sämtliche Threads über den gesamten Datensatz laufen, anstatt wie gewünscht den Datensatz auf die einzelnen Threads aufzuteilen.
+Zu diesem Zweck muss jeder Thread die Informationen darüber haben, welchen globalen Index er innerhalb des Grids hat, um mit dem entsprechenden Element aus dem Datensatz zu beginnen und wie viele Threads in dem Grid vorhanden sind, damit er den entsprechenden Abstand zu dem nächsten zu untersuchenden Element kennt.
+Der Index eines Threads berechnet sich aus $Blockindex * Blocksize + Threadindex$ und die Sprungweite ist definiert durch $Blocksize * Gridsize$.
+Die dafür zur Verfügung gestellten Variablen und eine beispielhafte Iteration über zwei Datensätze sind in Listing \ref{cuda_example} dargestellt. \cite{Harris2017}
+
+\begin{lstlisting}[language=C++,
+caption=Beispielhafter CUDA-Kernel zum Iterieren über zwei Datensätze,
+label=cuda_example]
+__global__
+void add(int n, float *x, float *y)
+{
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	for (int i = index; i < n; i += stride)
+	y[i] = x[i] + y[i];
+}
+\end{lstlisting}
