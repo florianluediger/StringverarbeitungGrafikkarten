@@ -1,5 +1,164 @@
 \chapter{Verbesserung des einfachen String-Vergleichs}
 
-\section{Ansatzpunkte für Lane-Refill}
+\section{Umsetzung mit Lane-Refill}
 
-\section{Umsetzung  mit Lane-Refill}
+\tikzset{snake it/.style={decorate, decoration={snake, amplitude=.5mm}}}
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+	\node (a1) [draw,thick,minimum width=3,minimum height=3] {$r_1$};
+	\node (a2) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of a1] {$s_1$};
+	\node (a3) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of a2] {$s_2$};
+	\node (a4) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of a3] {$s_3$};
+	\draw[->, thick] (a1) -- (a2) node[midway, left] { \footnotesize $\bowtie$ };
+	\draw[->, thick] (a2) -- (a3) node[midway, left] { \footnotesize $\bowtie$ };
+	\draw[->, thick] (a3) -- (a4) node[midway, left] { \footnotesize $\bowtie$ };
+	
+	\node (lb1) [above left = 0cm of a1] { \footnotesize $l_1$};
+	\node (le1) [below left = 1.04cm and 0.1cm of a4] {};
+	\draw[->, snake it] (lb1) -- (le1);
+	
+	\node (b1) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of a1] {$r_2$};
+	\node (b2) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of b1] {$s_4$};
+	\draw[->, thick] (b1) -- (b2) node[midway, left] { \footnotesize $\bowtie$ };
+	\node (lb2) [above left = 0cm of b1]  { \footnotesize $l_2$};
+	\node (le2) [below left = 3.07cm and 0.1cm of b2] {};
+	\draw[->, snake it] (lb2) -- (le2);
+	
+	\node (c1) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of b1] {$r_3$};
+	\node (lb3) [above left = 0cm of c1]  { \footnotesize $l_3$};
+	\node (le3) [below left = 4.1cm and 0.1cm of c1] {};
+	\draw[->, snake it] (lb3) -- (le3);
+	
+	\node (d1) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of c1] {$r_4$};
+	\node (d2) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of d1] {$s_5$};
+	\node (d3) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of d2] {$s_6$};
+	\node (d4) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of d3] {$s_7$};
+	\node (d5) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of d4] {$s_8$};
+	\draw[->, thick] (d1) -- (d2) node[midway, left] { \footnotesize $\bowtie$ };
+	\draw[->, thick] (d2) -- (d3) node[midway, left] { \footnotesize $\bowtie$ };
+	\draw[->, thick] (d3) -- (d4) node[midway, left] { \footnotesize $\bowtie$ };
+	\draw[->, thick] (d4) -- (d5) node[midway, left] { \footnotesize $\bowtie$ };
+	\node (lb4) [above left = 0cm of d1] { \footnotesize $l_4$};
+	\node (le4) [below left = 0.1cm of d5] {};
+	\draw[->, snake it] (lb4) -- (le4);
+	
+	\node[align=center, below left = 0cm and -1.3cm of le3] (l1) {\textbf{\textsf{Unausgelastete}}\\ \textbf{\textsf{Lanes $l_2$ und $l_3$}}};
+	
+	\begin{scope}[shift={(7,-0.75)}]
+	\node (x11) [draw,thick,minimum width=3,minimum height=3] {};
+	\node (x12) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x11] {};
+	\node (x13) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x12] {};
+	\node (x14) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x13] {};
+	\node (x21) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x11] {};
+	\node (x22) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x21] {};
+	\node (x23) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x22] {};
+	\node (x24) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x23] {};
+	\node (x31) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x21] {};
+	\node (x32) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x31] {};
+	\node (x33) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x32] {};
+	\node (x34) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x33] {};
+	\draw[->, thick] (x11) -- (x21);
+	\draw[->, thick] (x21) -- (x31);
+	\draw[->, thick] (x12) -- (x22);
+	\draw[->, thick] (x22) -- (x32);
+	\draw[->, thick] (x13) -- (x23);
+	\draw[->, thick] (x23) -- (x33);
+	\draw[->, thick] (x14) -- (x24);
+	\draw[->, thick] (x24) -- (x34);
+	\node (l1) [align=center, below = 0.3cm of x33] {\textbf{\textsf{Effiziente Nutzung der Parallelität}}};
+	\end{scope}
+	
+	\node (arr1) [below right = 0.2cm of d2] {};
+	\node (arr2) [left = 0.2cm of x21] {};
+	\draw[->, very thick] (arr1) -- (arr2) node[midway, above] { {\large\textbf{\textsf{?}}}};
+	\end{tikzpicture}
+	\caption{Berechnung von $R \bowtie S$ mit schlechter Auslastung aufgrund der ungleichmäßigen Verteilung von $S$. (Quelle: Henning Funke)}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+	\node (x11) [draw,thick,minimum width=3,minimum height=3] {};
+	\node (x12) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x11] {};
+	\node (x13) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x12] {};
+	\node (x14) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x13] {};
+	\node (x21) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x11] {};
+	\node (x22) [densely dashed, draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x21] {};
+	\node (x23) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x22] {};
+	\node (x24) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x23] {};
+	\node (x31) [densely dashed, draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x21] {};
+	\node (x32) [densely dashed, draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x31] {};
+	\node (x33) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x32] {};
+	\node (x34) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x33] {};
+	
+	\node (x41) [draw,thick,minimum width=1,minimum height=1, below = 0.8cm of x31] {};
+	\node (x42) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x41] {};
+	\node (x43) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x42] {};
+	\node (x44) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x43] {};
+	
+	%buffer tuples
+	\node (xb1) [draw,thick,minimum width=3,minimum height=3, right = 0.8cm of x44] {};
+	\node (xb2) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of xb1] {};
+	\node (xb3) [rotate=-90, below right = 0cm and 0.05cm of xb2] {\footnotesize $\cdots$};
+	
+	%buffer
+	\node (rect) [draw, thick, minimum width = 0.7cm, minimum height = 2cm, below right = -0.7cm of xb1] {};
+	\node[align=center, font=\footnotesize, rotate=-90, above right = 0.25cm and 0cm of rect] (b) {\textsf{divergence buffer}};
+	
+	%flush
+	\coordinate [below = 0.2cm of x33] (fl1);
+	\coordinate [below = 0.2cm of x34] (fl2);
+	\coordinate [above = 0.38cm of rect] (fl3);
+	
+	\draw[->, thick] (x33) -- (fl1) -- (fl3) -- (rect);
+	\draw[thick] (x34) -- (fl2);
+	\node[align=center, font=\footnotesize, above left = 0cm of fl3] (b) {\textsf{flush}};
+	
+	%new elements
+	\coordinate [above = 0.2cm of x41] (ne1);
+	\coordinate [above = 0.2cm of x42] (ne2);
+	\coordinate [above = 0.2cm of x43] (ne3);
+	\coordinate [above = 0.2cm of x44] (ne4);
+	\coordinate [left = 0.4cm of ne1] (ne5);
+	
+	
+	\node (new) [above right = 0cm and -0.5cm of ne1] {\footnotesize \textsf{new elements}};
+	\draw[->, thick] (ne1) -- (x41);
+	\draw[->, thick] (ne2) -- (x42);
+	\draw[->, thick] (ne3) -- (x43);
+	\draw[->, thick] (ne5) -- (ne4) -- (x44);
+	
+	\node (x51) [densely dashed, draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x41] {};
+	\node (x52) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x51] {};
+	\node (x53) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x52] {};
+	\node (x54) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x53] {};
+	
+	\node (x61) [densely dashed, draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x51] {};
+	\node (x62) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x61] {};
+	\node (x63) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x62] {};
+	\node (x64) [densely dashed, draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x63] {};
+	
+	%refill 
+	\coordinate [below = 0.2cm of x61] (rf1);
+	\coordinate [below = 0.2cm of x64] (rf2);
+	\coordinate [below = 0.23cm of rect] (rf3);
+	\draw[->, thick] (rect) -- (rf3) -- (rf1) -- (x61);
+	\draw[->, thick] (rf2) -- (x64);
+	\node[align=center, font=\footnotesize, below left = 0cm of rf3] (b) {\textsf{refill}};
+	
+	\node (x71) [draw,thick,minimum width=3,minimum height=3, below = 0.5cm of x61] {};
+	\node (x72) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x71] {};
+	\node (x73) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x72] {};
+	\node (x74) [draw,thick,minimum width=3,minimum height=3, right = 0.5cm of x73] {};
+	
+	\node[rotate=-90, below right = 0.2cm and 0.5cm of x72] (xend) {\LARGE $\cdots$};
+	\node (ts) [left = 0.5cm of x11] {};
+	\node (te) [left = 0.5cm of x71] {};
+	\draw[->, thick] (ts) -- (te);
+	\end{tikzpicture}
+	\caption{Divergence Buffer}
+\end{figure}
+
+\section{Implementierung}
