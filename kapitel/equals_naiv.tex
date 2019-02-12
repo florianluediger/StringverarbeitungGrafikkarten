@@ -10,131 +10,17 @@ Außerdem wird eine leichte Anpassung an dem Verfahren vorgenommen, sodass ein a
 \section{Vorgehen}
 
 Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tiefgehende Optimierungen umgesetzt.
-Das hier vorgestellte Verfahren soll eine lange Liste von Zeichenketten mit einem anderen String vergleichen.
-Der Kontext entspricht somit einer Datenbankanfrage, in der eine Selektion über eine Spalte mit String-Daten durchgeführt wird.
-
-\tikzset{t_label/.style={rectangle,draw,minimum size=0.4cm,minimum width=2.1cm,inner sep=0pt}}
-\tikzset{t_length/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt,fill=blue!30}}
-\tikzset{t_active/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt}}
-\tikzset{t_inactive/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt,fill=black!30}}
-\tikzset{t_blank/.style={rectangle,minimum size=0.4cm,inner sep=0pt}}
-
-\begin{figure}[t]
-	\centering
-	\begin{tikzpicture}
-		\begin{scope}
-			\node (l1) {\textsf{Datensatz:}};
-			\node[below = 0cm of l1] (l2) {\textsf{OMA, OPA, OTTO,}};
-			\node[below = 0cm of l2] (l3) {\textsf{AHA, OMA, OHM,}};
-			\node[below = 0cm of l3] (l4) {\textsf{OHA, DBMS, SQL}};
-		\end{scope}
-		\begin{scope}[xshift=4cm]
-			\node[t_label] (0s) {\textsf{Suchstr.}};
-			\node[t_label,below = 0.1cm of 0s] (0a) {\textsf{Thread 1}};
-			\node[t_label,below = 0.1cm of 0a] (0b) {\textsf{Thread 2}};
-			\node[t_label,below = 0.1cm of 0b] (0c) {\textsf{Thread 3}};
-			
-			\node[t_length, right = 0.3cm of 0s] (1s) {\textsf{3}};
-			\node[t_length, right = 0.3cm of 0a] (1a) {\textsf{3}};
-			\node[t_length, right = 0.3cm of 0b] (1b) {\textsf{3}};
-			\node[t_length, right = 0.3cm of 0c] (1c) {\textsf{4}};
-			
-			\node[t_active, right = 0cm of 1s] (2s) {\textsf{O}};
-			\node[t_active, right = 0cm of 1a] (2a) {\textsf{O}};
-			\node[t_active, right = 0cm of 1b] (2b) {\textsf{O}};
-			\node[t_inactive, right = 0cm of 1c] (2c) {};
-			
-			\node[t_active, right = 0cm of 2s] (3s) {\textsf{M}};
-			\node[t_active, right = 0cm of 2a] (3a) {\textsf{M}};
-			\node[t_active, right = 0cm of 2b] (3b) {\textsf{P}};
-			\node[t_inactive, right = 0cm of 2c] (3c) {};
-			
-			\node[t_active, right = 0cm of 3s] (4s) {\textsf{A}};
-			\node[t_active, right = 0cm of 3a] (4a) {\textsf{A}};
-			\node[t_inactive, right = 0cm of 3b] (4b) {};
-			\node[t_inactive, right = 0cm of 3c] (4c) {};
-			
-			\node[t_blank, right = 0cm of 4s] (5s) {};
-			\node[t_active, right = 0cm of 4a,fill=green!30] (5a) {\Checkmark};
-			\node[t_active, right = 0cm of 4b,fill=red!30] (5b) {\XSolid};
-			\node[t_active, right = 0cm of 4c,fill=red!30] (5c) {\XSolid};
-			
-			\node[t_length, right = 0.1cm of 5s] (6s) {\textsf{3}};
-			\node[t_length, right = 0.1cm of 5a] (6a) {\textsf{3}};
-			\node[t_length, right = 0.1cm of 5b] (6b) {\textsf{3}};
-			\node[t_length, right = 0.1cm of 5c] (6c) {\textsf{3}};
-			
-			\node[t_active, right = 0cm of 6s] (7s) {\textsf{O}};
-			\node[t_active, right = 0cm of 6a] (7a) {\textsf{A}};
-			\node[t_active, right = 0cm of 6b] (7b) {\textsf{O}};
-			\node[t_active, right = 0cm of 6c] (7c) {\textsf{O}};
-			
-			\node[t_active, right = 0cm of 7s] (8s) {\textsf{M}};
-			\node[t_inactive, right = 0cm of 7a] (8a) {};
-			\node[t_active, right = 0cm of 7b] (8b) {\textsf{M}};
-			\node[t_active, right = 0cm of 7c] (8c) {\textsf{H}};
-			
-			\node[t_active, right = 0cm of 8s] (9s) {\textsf{A}};
-			\node[t_inactive, right = 0cm of 8a] (9a) {};
-			\node[t_active, right = 0cm of 8b] (9b) {\textsf{A}};
-			\node[t_inactive, right = 0cm of 8c] (9c) {};
-			
-			\node[t_blank, right = 0cm of 9s] (10s) {};
-			\node[t_active, right = 0cm of 9a,fill=red!30] (10a) {\XSolid};
-			\node[t_active, right = 0cm of 9b,fill=green!30] (10b) {\Checkmark};
-			\node[t_active, right = 0cm of 9c,fill=red!30] (10c) {\XSolid};
-			
-			\node[t_length, right = 0.1cm of 10s] (11s) {\textsf{3}};
-			\node[t_length, right = 0.1cm of 10a] (11a) {\textsf{3}};
-			\node[t_length, right = 0.1cm of 10b] (11b) {\textsf{4}};
-			\node[t_length, right = 0.1cm of 10c] (11c) {\textsf{3}};
-			
-			\node[t_active, right = 0cm of 11s] (12s) {\textsf{O}};
-			\node[t_active, right = 0cm of 11a] (12a) {\textsf{O}};
-			\node[t_inactive, right = 0cm of 11b] (12b) {};
-			\node[t_active, right = 0cm of 11c] (12c) {\textsf{S}};
-			
-			\node[t_active, right = 0cm of 12s] (13s) {\textsf{M}};
-			\node[t_active, right = 0cm of 12a] (13a) {\textsf{H}};
-			\node[t_inactive, right = 0cm of 12b] (13b) {};
-			\node[t_inactive, right = 0cm of 12c] (13c) {};
-			
-			\node[t_blank, right = 0cm of 13s] (14s) {};
-			\node[t_active, right = 0cm of 13a,fill=red!30] (14a) {\XSolid};
-			\node[t_active, right = 0cm of 13b,fill=red!30] (14b) {\XSolid};
-			\node[t_active, right = 0cm of 13c,fill=red!30] (14c) {\XSolid};
-			
-			\node[above = 0.1cm of 1s] (arr1) {};
-			\node[above = 0.1cm of 14s] (arr2) {};
-			\draw[->, thick] (arr1) -- (arr2) node[midway, above] {{\large\textsf{Ausführungszeit}}};
-		\end{scope}
-		
-		\begin{scope}
-			\node[below = 0.5cm of 1c] (laenge) {\textsf{Längenvergleich}};
-			\node[below = -0.2cm of 1c] (laenge_arrow) {};
-			\draw [->] (laenge) -- (laenge_arrow);
-			
-			\node[below right = -0.2cm and -0.08cm of 5c] (neue_daten_arrow) {};
-			\node[below = 1.3cm of neue_daten_arrow, align = center] (neue_daten) {\textsf{Ergebnis schreiben,} \\ \textsf{neue Daten laden}};
-			\draw [->] (neue_daten) -- (neue_daten_arrow);
-			
-			\node[below = 0.5cm of 14c] (abbruch) {\textsf{frühzeitiger Abbruch}};
-			\node[below = -0.2cm of 14c] (abbruch_arrow) {};
-			\draw [->] (abbruch) -- (abbruch_arrow);
-		\end{scope}
-	\end{tikzpicture}
-	\caption{Funktionsweise des Algorithmus innerhalb eines Warps mit drei Threads}
-	\label{fig:equals_naiv_algorithmus}
-\end{figure}
+Das hier vorgestellte Verfahren soll eine lange Liste von Zeichenketten mit einem vorher spezifizierten String vergleichen.
+Diese Operation könnte im Kontext einer Datenbankanfrage einer Selektion über eine Spalte mit String-Daten entsprechen.
 
 Zur Durchführung dieser Operation wird jedem Thread der GPU eine Zeichenkette aus dem Datensatz zugewiesen.
 Zunächst wird überprüft, ob die Länge des Strings mit der des Suchstrings übereinstimmt, sodass der entsprechende Eintrag direkt verworfen werden kann.
 Sind die Längen identisch, werden beide Zeichenketten Zeichen für Zeichen durchlaufen und diese an jeder Stelle auf Gleichheit überprüft.
 Sobald eine Ungleichheit gefunden wurde, wird ein entsprechendes Flag gesetzt und die weiteren Zeichen müssen nicht mehr genauer betrachtet werden.
 
-Sämtliche Threads innerhalb eines Warp werden entsprechend des Verarbeitungsmodells der GPU parallel abgearbeitet.
+Sämtliche Threads innerhalb eines Warp werden entsprechend dem Verarbeitungsmodell der GPU parallel abgearbeitet.
 Somit sind die Positionen, an denen die Strings verglichen werden ebenfalls für alle Threads identisch.
-Sobald der Vergleichsstring im gesamten Warp vollständig durchlaufen wurden, wird das Zwischenergebnis geschrieben.
+Sobald der Vergleichsstring im gesamten Warp vollständig durchlaufen wurde, wird das Zwischenergebnis geschrieben.
 Im Falle dieser konkreten Untersuchung wird hier der Einfachheit halber lediglich die Anzahl der passenden Zeichenketten gezählt.
 Es wäre allerdings auch denkbar, dass die Indizes der entsprechenden Einträge gespeichert wird, oder in einer Pipelining-Umgebung der Eintrag an die nächste Operation in der Pipeline weitergegeben wird.
 Sollten alle Threads in dem Warp vorzeitig feststellen, dass keiner der Strings mit dem Suchstring übereinstimmt, wird die aktuelle Untersuchung vorzeitig abgebrochen.
@@ -142,12 +28,126 @@ Sollten alle Threads in dem Warp vorzeitig feststellen, dass keiner der Strings 
 Schließlich wird jedem Thread eine neue Zeichenkette aus dem Datensatz zugewiesen, sodass das Verfahren im weiteren Verlauf wiederholt wird.
 Sobald der gesamte Datensatz durchlaufen wurde, ist die Berechnung abgeschlossen.
 
-In Abbildung \ref{fig:equals_naiv_algorithmus} ist der Ablauf des Algorithmus innerhalb eines Warps mit drei Threads dargestellt.
+\tikzset{t_label/.style={rectangle,draw,minimum size=0.4cm,minimum width=2.1cm,inner sep=0pt}}
+\tikzset{t_length/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt,fill=blue!30}}
+\tikzset{t_active/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt}}
+\tikzset{t_inactive/.style={rectangle,draw,minimum size=0.4cm,inner sep=0pt,fill=black!30}}
+\tikzset{t_blank/.style={rectangle,minimum size=0.4cm,inner sep=0pt}}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+	\begin{scope}
+	\node (l1) {\textsf{Datensatz:}};
+	\node[below = 0cm of l1] (l2) {\textsf{OMA, OPA, OTTO,}};
+	\node[below = 0cm of l2] (l3) {\textsf{AHA, OMA, OHM,}};
+	\node[below = 0cm of l3] (l4) {\textsf{OHA, DBMS, SQL}};
+	\end{scope}
+	\begin{scope}[xshift=4cm]
+	\node[t_label] (0s) {\textsf{Suchstr.}};
+	\node[t_label,below = 0.1cm of 0s] (0a) {\textsf{Thread 1}};
+	\node[t_label,below = 0.1cm of 0a] (0b) {\textsf{Thread 2}};
+	\node[t_label,below = 0.1cm of 0b] (0c) {\textsf{Thread 3}};
+	
+	\node[t_length, right = 0.3cm of 0s] (1s) {\textsf{3}};
+	\node[t_length, right = 0.3cm of 0a] (1a) {\textsf{3}};
+	\node[t_length, right = 0.3cm of 0b] (1b) {\textsf{3}};
+	\node[t_length, right = 0.3cm of 0c] (1c) {\textsf{4}};
+	
+	\node[t_active, right = 0cm of 1s] (2s) {\textsf{O}};
+	\node[t_active, right = 0cm of 1a] (2a) {\textsf{O}};
+	\node[t_active, right = 0cm of 1b] (2b) {\textsf{O}};
+	\node[t_inactive, right = 0cm of 1c] (2c) {};
+	
+	\node[t_active, right = 0cm of 2s] (3s) {\textsf{M}};
+	\node[t_active, right = 0cm of 2a] (3a) {\textsf{M}};
+	\node[t_active, right = 0cm of 2b] (3b) {\textsf{P}};
+	\node[t_inactive, right = 0cm of 2c] (3c) {};
+	
+	\node[t_active, right = 0cm of 3s] (4s) {\textsf{A}};
+	\node[t_active, right = 0cm of 3a] (4a) {\textsf{A}};
+	\node[t_inactive, right = 0cm of 3b] (4b) {};
+	\node[t_inactive, right = 0cm of 3c] (4c) {};
+	
+	\node[t_blank, right = 0cm of 4s] (5s) {};
+	\node[t_active, right = 0cm of 4a,fill=green!30] (5a) {\Checkmark};
+	\node[t_active, right = 0cm of 4b,fill=red!30] (5b) {\XSolid};
+	\node[t_active, right = 0cm of 4c,fill=red!30] (5c) {\XSolid};
+	
+	\node[t_length, right = 0.1cm of 5s] (6s) {\textsf{3}};
+	\node[t_length, right = 0.1cm of 5a] (6a) {\textsf{3}};
+	\node[t_length, right = 0.1cm of 5b] (6b) {\textsf{3}};
+	\node[t_length, right = 0.1cm of 5c] (6c) {\textsf{3}};
+	
+	\node[t_active, right = 0cm of 6s] (7s) {\textsf{O}};
+	\node[t_active, right = 0cm of 6a] (7a) {\textsf{A}};
+	\node[t_active, right = 0cm of 6b] (7b) {\textsf{O}};
+	\node[t_active, right = 0cm of 6c] (7c) {\textsf{O}};
+	
+	\node[t_active, right = 0cm of 7s] (8s) {\textsf{M}};
+	\node[t_inactive, right = 0cm of 7a] (8a) {};
+	\node[t_active, right = 0cm of 7b] (8b) {\textsf{M}};
+	\node[t_active, right = 0cm of 7c] (8c) {\textsf{H}};
+	
+	\node[t_active, right = 0cm of 8s] (9s) {\textsf{A}};
+	\node[t_inactive, right = 0cm of 8a] (9a) {};
+	\node[t_active, right = 0cm of 8b] (9b) {\textsf{A}};
+	\node[t_inactive, right = 0cm of 8c] (9c) {};
+	
+	\node[t_blank, right = 0cm of 9s] (10s) {};
+	\node[t_active, right = 0cm of 9a,fill=red!30] (10a) {\XSolid};
+	\node[t_active, right = 0cm of 9b,fill=green!30] (10b) {\Checkmark};
+	\node[t_active, right = 0cm of 9c,fill=red!30] (10c) {\XSolid};
+	
+	\node[t_length, right = 0.1cm of 10s] (11s) {\textsf{3}};
+	\node[t_length, right = 0.1cm of 10a] (11a) {\textsf{3}};
+	\node[t_length, right = 0.1cm of 10b] (11b) {\textsf{4}};
+	\node[t_length, right = 0.1cm of 10c] (11c) {\textsf{3}};
+	
+	\node[t_active, right = 0cm of 11s] (12s) {\textsf{O}};
+	\node[t_active, right = 0cm of 11a] (12a) {\textsf{O}};
+	\node[t_inactive, right = 0cm of 11b] (12b) {};
+	\node[t_active, right = 0cm of 11c] (12c) {\textsf{S}};
+	
+	\node[t_active, right = 0cm of 12s] (13s) {\textsf{M}};
+	\node[t_active, right = 0cm of 12a] (13a) {\textsf{H}};
+	\node[t_inactive, right = 0cm of 12b] (13b) {};
+	\node[t_inactive, right = 0cm of 12c] (13c) {};
+	
+	\node[t_blank, right = 0cm of 13s] (14s) {};
+	\node[t_active, right = 0cm of 13a,fill=red!30] (14a) {\XSolid};
+	\node[t_active, right = 0cm of 13b,fill=red!30] (14b) {\XSolid};
+	\node[t_active, right = 0cm of 13c,fill=red!30] (14c) {\XSolid};
+	
+	\node[above = 0.1cm of 1s] (arr1) {};
+	\node[above = 0.1cm of 14s] (arr2) {};
+	\draw[->, thick] (arr1) -- (arr2) node[midway, above] {{\large\textsf{Ausführungszeit}}};
+	\end{scope}
+	
+	\begin{scope}
+	\node[below = 0.5cm of 1c] (laenge) {\textsf{Längenvergleich}};
+	\node[below = -0.2cm of 1c] (laenge_arrow) {};
+	\draw [->] (laenge) -- (laenge_arrow);
+	
+	\node[below right = -0.2cm and -0.08cm of 5c] (neue_daten_arrow) {};
+	\node[below = 1.3cm of neue_daten_arrow, align = center] (neue_daten) {\textsf{Ergebnis schreiben,} \\ \textsf{neue Daten laden}};
+	\draw [->] (neue_daten) -- (neue_daten_arrow);
+	
+	\node[below = 0.5cm of 14c] (abbruch) {\textsf{frühzeitiger Abbruch}};
+	\node[below = -0.2cm of 14c] (abbruch_arrow) {};
+	\draw [->] (abbruch) -- (abbruch_arrow);
+	\end{scope}
+	\end{tikzpicture}
+	\caption{Funktionsweise des Algorithmus innerhalb eines Warps mit drei Threads}
+	\label{equals_naiv_algorithmus}
+\end{figure}
+
+In Abbildung \ref{equals_naiv_algorithmus} ist der Ablauf des Algorithmus innerhalb eines Warps mit drei Threads dargestellt.
 Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnung frühzeitig abgebrochen werden kann und an welchen Stellen das Ergebnis geschrieben wird und neue Daten aus dem Datensatz geholt werden.
 
 \section{Implementierung}
 
-Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tiefgehende Optimierungen umgesetzt.
+Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tief greifende Optimierungen umgesetzt.
 Dies gibt Gelegenheit dazu, die Programmierung einfacher Algorithmen mithilfe der CUDA Schnittstelle für Grafikkarten darzustellen.
 Da die Analyse im Rahmen dieser Arbeit innerhalb einer Pipelining-Umgebung durchgeführt werden, lassen sich hier außerdem einige Besonderheiten der Implementierung erläutern.
 
@@ -173,7 +173,7 @@ Dieser Kernel erwartet, dass die benötigten Daten vorher vom Hauptspeicher in d
 In Listing \ref{naive_equals_signature} ist die Methodensignatur des Kernels für den einfachen Stringvergleich dargestellt.
 
 Die Position des Datensatzes, welcher mit dem Vergleichsstring abgeglichen werden soll, wird über den Zeiger \texttt{data\_content} übergeben.
-Der Datensatz besteht in einer Aneinanderreihung der Entsprechenden Zeichenketten ohne Trennzeichen.
+Der Datensatz besteht aus einer Aneinanderreihung der entsprechenden Zeichenketten ohne Trennzeichen.
 Damit daraus die ursprünglichen Strings extrahiert werden können, gibt es einen zweiten Array, welcher Informationen über die Indizes der Einzelstrings innerhalb des Datensatzes enthält.
 Die Position dieser Informationen wird über die Variable \texttt{char\_offset} übergeben.
 Ebenfalls muss natürlich ein Zeiger auf den Suchstring und dessen Länge in den entsprechenden Parametern \texttt{search\_string} und \texttt{search\_string\_length} mitgeliefert werden.
@@ -202,7 +202,7 @@ void naiveKernel( /* parameters */ ) {
 		active = loop_var < line_count;
 		
 		// break computation when every lane is finished and therefore inactive
-		flush_pipeline = !__ballot_sync(ALL_LANES, active);
+		flush_pipeline = !__ballot_sync(0xFFFFFFFF, active);
 		
 		data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
 		
@@ -239,9 +239,15 @@ Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\te
 
 Die Variable \texttt{active} zeigt im Algorithmus an, ob das aktuell untersuchte Datenelement noch aktiv geprüft wird, oder dieses bereits verworfen wurde.
 Somit zeigt diese Variable auch an, ob der aktuelle Thread aktiv läuft, oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
-Im ersten Schritt wird für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
-Sind die Längen identisch, wird über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt.
-Entsprechend des Ergebnisses läuft die Schleife bis zum Ende durch und die Anzahl passender Elemente im Datensatz kann erhöht werden, oder die Untersuchung wird vorzeitig abgebrochen und der Thread als inaktiv markiert.
+Im ersten Schritt wird in Zeile 23 für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
+
+Sind die Längen identisch, wird in der in Zeile 29 beginnenden Schleife über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt. %TODO: Schleifenbedingung genauer erklären; __any_sync braucht man hier eigentlich noch nicht, sondern erst später beim Lane Refill
+Ist die Schleife vollständig durchlaufen oder vorzeitig abgebrochen worden, kann am Zustand der \texttt{active}-Variable abgelesen werden, ob die Strings übereinstimmen oder nicht.
+Somit wird die Anzahl passender Elemente gegebenenfalls im Datensatz erhöht und der Index des zu untersuchenden Elementes um die vorher berechnete Schrittweite erhöht.
+
+Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable auf \texttt{false} gesetzt wird.
+Mit der \texttt{\_\_ballot\_sync} Methode kann der Status der \texttt{active}-Variable in allen Lanes des Warps abgefragt werden und eine entsprechende Bitmaske erstellt werden.
+Liefert diese Methode in Zeile 18 also den Wert \texttt{false}, sind sämtliche Lanes inaktiv, der Datensatz ist vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
 
 %TODO Bezug zum Pipelining herstellen
 
