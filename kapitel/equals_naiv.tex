@@ -182,28 +182,16 @@ Der letzte Parameter \texttt{number\_of\_matches} dient dazu, dass an die entspr
 
 \newpage
 
-%TODO: Listing kürzen, da in Pipelining schon erklärt
-
 \begin{lstlisting}[language=C++,
 	caption=Naive Implementierung des String-Vergleichs,
 	label=naive_equals]
 __global__
 void naiveKernel( /* parameters */ ) {
-	// global index of the current thread,
-	// used as the iterator in this case
-	unsigned loop_var = blockIdx.x * blockDim.x + threadIdx.x;
-	
-	// offset for the next element to be computed
-	unsigned step = blockDim.x * gridDim.x;
-	
-	bool active = true;
-	bool flush_pipeline = false;
+
+	/* define loop_var, step, active and flush_pipeline */
 	
 	while(!flush_pipeline) {
-		// element index must not be higher than line count
 		active = loop_var < line_count;
-		
-		// break computation when every lane is finished and therefore inactive
 		flush_pipeline = !__ballot_sync(0xFFFFFFFF, active);
 		
 		data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
@@ -235,22 +223,17 @@ void naiveKernel( /* parameters */ ) {
 \end{lstlisting}
 
 In Listing \ref{naive_equals} ist die Implementierung des Algorithmus dargestellt, welcher alle Strings aus dem Datensatz mit dem Suchstring vergleicht und daraufhin die Anzahl der passenden Zeichenketten zurückliefert.
-
-%Zunächst wird der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
-%Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
-%Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\text{Gridgröße} \times \text{Blockgröße}}$ berechnen.
-
-%TODO: Bezug auf Pipelining Kapitel herstellen
+Die Struktur des Kernels ist dieselbe wie die des in Kapitel \ref{sec:pipelining} vorgestellten Beispiels, weshalb einige Stellen hier gekürzt wurden.
+Es wird ebenfalls der globale Index des aktuellen Threads als Schleifenindex \texttt{loop\_var} verwendet und so über den gesamten Datensatz iteriert.
 
 Die Variable \texttt{active} zeigt im Algorithmus an, ob das aktuell untersuchte Datenelement noch aktiv geprüft wird, oder dieses bereits verworfen wurde.
 Somit zeigt diese Variable auch an, ob der aktuelle Thread aktiv läuft, oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
-Im ersten Schritt wird in Zeile 23 für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
+Im ersten Schritt wird in Zeile 13 für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
 
-Sind die Längen identisch, wird in der in Zeile 29 beginnenden Schleife über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt. %TODO: Schleifenbedingung genauer erklären; __any_sync braucht man hier eigentlich noch nicht, sondern erst später beim Lane Refill
+Sind die Längen identisch, wird in der in Zeile 19 beginnenden Schleife über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt. %TODO: Schleifenbedingung genauer erklären; __any_sync braucht man hier eigentlich noch nicht, sondern erst später beim Lane Refill
+Die Struktur dieser Schleife ähnelt sehr stark dem Iterieren über die passenden Elemente aus der Hashtabelle in dem Beispiel aus Kapitel \ref{sec:pipelining}.
 Ist die Schleife vollständig durchlaufen oder vorzeitig abgebrochen worden, kann am Zustand der \texttt{active}-Variable abgelesen werden, ob die Strings übereinstimmen oder nicht.
 Somit wird die Anzahl passender Elemente gegebenenfalls im Datensatz erhöht und der Index des zu untersuchenden Elementes um die vorher berechnete Schrittweite erhöht.
-
-%TODO Bezug zum Pipelining herstellen
 
 \section{Präfixtest als alternativer Workload}
 
