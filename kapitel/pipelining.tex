@@ -1,1 +1,123 @@
-\chapter{Der Pipelining-Ansatz}
+\chapter{Compiled Query Pipelines}
+
+Die Untersuchungen der String-Vergleiche, die in dieser Arbeit durchgeführt werden, finden im Kontext des Query Compilers DogQC für GPUs statt.
+Dieser basiert auf dem Query Compiler HorseQC, welcher in \cite{Funke2018} vorgestellt und für das erleichterte testen von aktuellen Techniken vereinfacht wurde.
+DogQC erstellt aus einem gegebenen Anfrageplan eine Query Pipeline, die für die Ausführung auf GPUs optimiert ist.
+Um die später verwendeten Codebeispiele zu verstehen, wird hier die grundsätzliche Funktionsweise des Query Compilers erklärt und die Vorteile dieser Technik erläutert.
+
+Klassische Verarbeitungsstrategien arbeiten die Operatoren innerhalb eines Anfrageplans nacheinander ab, was auch \emph{Operator At A Time} genannt wird.
+Dabei wird für den gesamten Datensatz zunächst der erste Operator vollständig ausgeführt, bevor der gesamte Datensatz an den nächsten Operator weiter gegeben wird, bis schließlich der gesamte Anfrageplan abgearbeitet wurde.
+Der Nachteil dieser Strategie, welcher sich besonders auf GPU-Hardware niederschlägt, besteht darin, dass eine Tabelle, die zu groß für den GPU-Cache ist, im GPU-Speicher materialisiert werden muss.
+Ist dieser ebenfalls zu klein, muss die Tabelle sogar in den Hauptspeicher des Systems übertragen werden, wobei massive Flaschenhälse durch die begrenzte Bandbreite entstehen.
+Das Pipelining-Prinzip, welches bei dem vorgestellten Query Compiler zum Einsatz kommt, besagt, dass der Anfrageplan in Pipelines aufgeteilt wird, welche von den Tupeln immer vollständig durchlaufen werden, bevor das Ergebnis materialisiert wird.
+Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
+
+%TODO: Bild einfügen
+
+Die Operatoren innerhalb des Anfrageplans aus Abbildung [HIER REF EINFÜGEN] werden zu zwei Pipelines zusammengefasst.
+In der linken Pipeline wird die \textsf{orders}-Relation gelesen, die Selektion ausgeführt und die Hashtabelle für den Join berechnet.
+Die rechte Pipeline fasst das Lesen der \textsf{date}-Relation, die Selektion, das Proben der Hashtabelle und das Zählen der Ergebnisse zusammen.
+Technisch werden die Operationen innerhalb der Pipeline zu einem einzigen Operator verschmolzen, indem der Query Compiler für eine Pipeline einen eigenständigen Kernel generiert, welcher mit der CUDA-Schnittstelle ausgeführt werden kann.
+Der Vorteil des Pipelinings besteht drain, dass die Ergebnisse jedes Operators nicht immer wieder im Speicher materialisiert werden müssen, sondern die einzelnen Tupel stets in den GPU-Registern vorgehalten werden können, bis diese fertig verarbeitet wurden.
+
+Der verwendete Query Compiler verwendet die CUDA-Operationen zur Synchronisation von Threads\footnote{Siehe Kapitel \ref{sec:synchronisation_von_threads}}, um zwischen den Threads innerhalb eines Warps kommunizieren zu können.
+Da sämtliche Threads für den Aufruf der Synchronisierungsoperationen die gleiche Instruktion aufrufen müssen, ist das parallele Durchlaufen des Kernels nötig, wodurch auch der vom Query Compiler generierte Code diese Parallelität explizit macht.
+
+In Listing \ref{pipelining_example_code} wird der Code vorgestellt, welcher von dem Query Compiler für den in Abbildung [HIER REF EINFÜGEN] dargestellten Anfrageplan generiert wurde.
+Hier ist zu erkennen, dass die drei Operationen innerhalb eines Kernels zusammengefasst wurden, wodurch eine Pipeline entsteht.
+
+Um jedem Thread eine Menge von Tupel zuweisen zu können, wird zunächst der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
+Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
+Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\text{Gridgröße} \times \text{Blockgröße}}$ berechnen.
+Die Variable \texttt{active} zeigt im Algorithmus an, ob der aktuelle Thread aktiv läuft oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
+
+In einem Schleifendurchlauf, bei dem das Element mit dem Index \texttt{loop\_var} untersucht wird, wird zunächst die rot markierte Selektion ausgeführt.
+Ist diese fehlgeschlagen, da das Datum nicht im Jahr 2019 liegt, wird der Thread deaktiviert und im weiteren Verlauf nicht mehr beachtet, bis er ein neues Tupel erhält.
+Hat sich das Tupel qualifiziert, folgt darauf der Hash Probe, welche in grün dargestellt ist.
+Dabei wird das Tupel in der übergebenen Hashtabelle \texttt{hashtable\_customer\_build} gesucht und anschließend über die zutreffenden Elemente iteriert.
+
+An dieser Stelle fällt die parallele Struktur des Kernels besonders auf, da die Ergebnisse des Hash Probes parallel von den Threads durchlaufen werden und diese erst aufhören, wenn der letzte Thread den ihm zugewiesenen Datensatz vollständig durchlaufen hat.
+Daher setzt ein Thread, welcher seinen Teil der zutreffenden Elemente aus dem Hash Probe vollständig durchlaufen hat, lediglich seine \texttt{active}-Variable auf \texttt{false} und iteriert dann parallel mit den anderen Threads weiter.
+Mit der Synchronisierungsoperation \texttt{\_\_any\_sync} lässt sich in Zeile 33 überprüfen, ob sämtliche Lanes auf diese Weise inaktiv geworden sind, wodurch der Hash Probe abgeschlossen ist.
+
+Schließlich wurde vom Query Compiler innerhalb des Hash Probes noch das Zählen der Ergebnisse umgesetzt, welches hier in gelb hervorgehoben wurde.
+Dabei wird wieder mithilfe der Synchronisierungsoperation \texttt{\_\_ballot\_sync} die Anzahl der aktiven Lanes gezählt, welche jeweils ein Element des Ergebnisses repräsentieren.
+Diese Anzahl wird daraufhin vom ersten Thread innerhalb des Warps auf das Ergebnis addiert. 
+
+Nach der Durchführung der gesamten Pipeline von Operationen für das untersuchte Tupel, wird in Zeile 43 der Index erhöht, sodass im nächsten Schleifendurchlauf das nächste Tupel untersucht wird.
+Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable in Zeile 18 auf \texttt{false} gesetzt wird.
+Wird in Zeile 21 mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
+
+\newpage
+
+\begin{lstlisting}[language=C++,
+caption=Generierter Kernel für den Beispielplan,
+label=pipelining_example_code,
+linebackgroundcolor={%
+\ifnum\value{lstnumber}>22
+	\ifnum\value{lstnumber}<26
+		\color{red!25}
+	\fi
+\fi
+\ifnum\value{lstnumber}>26
+	\ifnum\value{lstnumber}<34
+		\color{green!25}
+	\fi
+\fi
+\ifnum\value{lstnumber}>33
+	\ifnum\value{lstnumber}<38
+		\color{yellow!25}
+	\fi
+\fi
+\ifnum\value{lstnumber}>37
+	\ifnum\value{lstnumber}<42
+		\color{green!25}
+	\fi
+\fi
+}]
+__global__
+void joinProbePipeline(
+	int *date_year,                      // year attribute of date table
+	int *date_complete,                  // complete attribute of date table
+	multi_ht *hashtable_customer_build,  // hashtable from other pipeline
+	int *number_of_matches) {            // return value
+	// global index of the current thread,
+	// used as the iterator in this case
+	unsigned loop_var = ((blockIdx.x * blockDim.x) + threadIdx.x);
+	
+	// offset for the next element to be computed
+	unsigned step = (blockDim.x * gridDim.x);
+	
+	bool active = true;
+	bool flush_pipeline = false;
+	while(!flush_pipeline) {
+		// element index must not be higher than number of tuples
+		active = loop_var < TUPLE_COUNT;
+		
+		// break computation when every line is finished and therefore inactive
+		flush_pipeline = !__ballot_sync(ALL_LANES, active);
+		
+		// selection
+		if (active)
+			active = date_year[loop_var] == 2019;
+		
+		// hash join probe
+		int matchOffset = 0, matchEnd = 0;
+		if (active)
+			active = hashProbeMulti(hashtable_customer_build, HASHTABLE_SIZE,
+				date_complete[loop_var], matchOffset, matchEnd);
+		
+		while (__any_sync(0xFFFFFFFF, active)) {
+			// count and write
+			numProj = __popc(__ballot_sync(0xFFFFFFFF, active))
+			if (threadIdx.x % 32 == 0)
+				atomicAdd(number_of_matches, numProj);
+
+			matchOffset++;
+			active = matchOffset < matchEnd;
+		}
+		
+		loop_var += step;
+	}
+}
+\end{lstlisting}

@@ -182,6 +182,8 @@ Der letzte Parameter \texttt{number\_of\_matches} dient dazu, dass an die entspr
 
 \newpage
 
+%TODO: Listing kürzen, da in Pipelining schon erklärt
+
 \begin{lstlisting}[language=C++,
 	caption=Naive Implementierung des String-Vergleichs,
 	label=naive_equals]
@@ -233,9 +235,12 @@ void naiveKernel( /* parameters */ ) {
 \end{lstlisting}
 
 In Listing \ref{naive_equals} ist die Implementierung des Algorithmus dargestellt, welcher alle Strings aus dem Datensatz mit dem Suchstring vergleicht und daraufhin die Anzahl der passenden Zeichenketten zurückliefert.
-Zunächst wird der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
-Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
-Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\text{Gridgröße} \times \text{Blockgröße}}$ berechnen.
+
+%Zunächst wird der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
+%Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
+%Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\text{Gridgröße} \times \text{Blockgröße}}$ berechnen.
+
+%TODO: Bezug auf Pipelining Kapitel herstellen
 
 Die Variable \texttt{active} zeigt im Algorithmus an, ob das aktuell untersuchte Datenelement noch aktiv geprüft wird, oder dieses bereits verworfen wurde.
 Somit zeigt diese Variable auch an, ob der aktuelle Thread aktiv läuft, oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
@@ -244,10 +249,6 @@ Im ersten Schritt wird in Zeile 23 für einen String überprüft, ob dessen Län
 Sind die Längen identisch, wird in der in Zeile 29 beginnenden Schleife über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt. %TODO: Schleifenbedingung genauer erklären; __any_sync braucht man hier eigentlich noch nicht, sondern erst später beim Lane Refill
 Ist die Schleife vollständig durchlaufen oder vorzeitig abgebrochen worden, kann am Zustand der \texttt{active}-Variable abgelesen werden, ob die Strings übereinstimmen oder nicht.
 Somit wird die Anzahl passender Elemente gegebenenfalls im Datensatz erhöht und der Index des zu untersuchenden Elementes um die vorher berechnete Schrittweite erhöht.
-
-Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable auf \texttt{false} gesetzt wird.
-Mit der \texttt{\_\_ballot\_sync} Methode kann der Status der \texttt{active}-Variable in allen Lanes des Warps abgefragt werden und eine entsprechende Bitmaske erstellt werden.
-Liefert diese Methode in Zeile 18 also den Wert \texttt{false}, sind sämtliche Lanes inaktiv, der Datensatz ist vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
 
 %TODO Bezug zum Pipelining herstellen
 
