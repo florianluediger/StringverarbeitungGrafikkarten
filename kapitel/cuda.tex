@@ -91,7 +91,8 @@ Einem Kernel können verschiedene Parameter wie Zeiger auf Speicherbereiche inne
 Zum Durchlaufen eines solchen Speicherbereiches in einem sequenziellen Programm wäre es ausreichend mit einem Index über das Feld zu iterieren und diesen nach jeder Iteration um eins zu erhöhen.
 Bei einer parallelen Architektur würden so allerdings sämtliche Threads über den gesamten Datensatz laufen, anstatt wie gewünscht den Datensatz auf die einzelnen Threads aufzuteilen.
 Zu diesem Zweck muss jeder Thread die Informationen darüber haben, welchen globalen Index er innerhalb des Grids hat, um mit dem entsprechenden Element aus dem Datensatz zu beginnen und wie viele Threads in dem Grid vorhanden sind, damit er den entsprechenden Abstand zu dem nächsten zu untersuchenden Element kennt.
-Der Index eines Threads berechnet sich aus $Blockindex * Blocksize + Threadindex$ und die Sprungweite ist definiert durch $Blocksize * Gridsize$.
+Innerhalb eines Kernels kann der Thread auf seinen Threadindex (\texttt{threadIdx.x}), die Anzahl der Threads in einem Block (\texttt{blockDim.x}), seinen Blockindex (\texttt{blockIdx.x}) und die Anzahl der Blöcke im Grid (\texttt{girdDim.x}) zugreifen.
+Der globale Index eines Threads berechnet sich somit aus \texttt{blockIdx.x * blockDim.x + threadIdx.x} und die Sprungweite ist definiert durch \texttt{blockDim.x * gridDim.x}.
 Die dafür zur Verfügung gestellten Variablen und eine beispielhafte Iteration über zwei Datensätze sind in Listing \ref{cuda_example} dargestellt.
 
 \begin{lstlisting}[language=C++,
@@ -103,6 +104,6 @@ void add(int n, float *x, float *y)
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
 	for (int i = index; i < n; i += stride)
-	y[i] = x[i] + y[i];
+		y[i] = x[i] + y[i];
 }
 \end{lstlisting}

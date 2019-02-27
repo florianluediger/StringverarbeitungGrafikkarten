@@ -1,32 +1,31 @@
 \chapter{Compiled Query Pipelines}
 \label{sec:pipelining}
 
-Die Untersuchungen der String-Vergleiche, die in dieser Arbeit durchgeführt werden, finden im Kontext des Query Compilers DogQC für GPUs statt.
-Dieser basiert auf dem Query Compiler HorseQC, welcher in \cite{Funke2018} vorgestellt und für das erleichterte testen von aktuellen Techniken vereinfacht wurde.
+In dieser Arbeit werden String-Vergleiche im Kontext des Query Compilers DogQC für GPUs untersucht.
+Dieser basiert auf dem Query Compiler HorseQC \cite{Funke2018} und wurde für das erleichterte testen von aktuellen Techniken vereinfacht.
 DogQC erstellt aus einem gegebenen Anfrageplan eine Query Pipeline, die für die Ausführung auf GPUs optimiert ist.
-Um die später verwendeten Codebeispiele zu verstehen, wird hier die grundsätzliche Funktionsweise des Query Compilers erklärt und die Vorteile dieser Technik erläutert.
+Als Grundlage für die späteren Codebeispiele, wird hier die grundsätzliche Funktionsweise des Query Compilers erklärt und die Vorteile dieser Technik erläutert.
 
-Klassische Verarbeitungsstrategien arbeiten die Operatoren innerhalb eines Anfrageplans nacheinander ab, was auch \emph{Operator At A Time} genannt wird.
+Klassische in-memory Datenbanken wie MonetDB arbeiten die Operatoren innerhalb eines Anfrageplans nacheinander ab, was auch \emph{Operator At A Time} genannt wird.
 Dabei wird für den gesamten Datensatz zunächst der erste Operator vollständig ausgeführt, bevor der gesamte Datensatz an den nächsten Operator weiter gegeben wird, bis schließlich der gesamte Anfrageplan abgearbeitet wurde.
-Der Nachteil dieser Strategie, welcher sich besonders auf GPU-Hardware niederschlägt, besteht darin, dass eine Tabelle, die zu groß für den GPU-Cache ist, im GPU-Speicher materialisiert werden muss.
-Ist dieser ebenfalls zu klein, muss die Tabelle sogar in den Hauptspeicher des Systems übertragen werden, wobei massive Flaschenhälse durch die begrenzte Bandbreite entstehen.
-Das Pipelining-Prinzip, welches bei dem vorgestellten Query Compiler zum Einsatz kommt, besagt, dass der Anfrageplan in Pipelines aufgeteilt wird, welche von den Tupeln immer vollständig durchlaufen werden, bevor das Ergebnis materialisiert wird.
-Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
+Der Nachteil dieser Strategie, besteht in einer besonders hohen Lese- und Schreiblast für die Zwischenergebnisse der Operatoren, da diese nach jeder Operation im Speicher materialisiert werden müssen.
+Reicht der begrenzte GPU-Speicher nicht aus, um die Zwischenergebnisse zu speichern, werden während der Berechnung Transfers in den Hauptspeicher des Systems notwendig, um neue Blöcke der Tabelle nachzuladen.
+Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 
 \begin{figure}[ht]
 	\centering
 	\begin{tikzpicture}
 		\node (count) {count(*)};
 		\node [below = 1cm of count] (join) {$\bowtie$};
-		\node [below right = -0.3cm and -0.3cm of join, style={align=center}, font=\linespread{0.7}\selectfont] (join_text) {\scriptsize orders.date=\\ \scriptsize dates.complete};
+		\node [below right = -0.3cm and -0.3cm of join, style={align=center}, font=\linespread{0.7}\selectfont] (join_text) {\scriptsize orders.date=\\ \scriptsize dates.key};
 		
 		\node [below left = 1cm and 1cm of join] (select_id) {$\sigma$};
-		\node [below right = -0.3cm and -0.3cm of select_id] (select_id_text) {\scriptsize id=4711};
-		\node [below = 1cm of select_id] (orders) {orders};
+		\node [below right = -0.3cm and -0.3cm of select_id] (select_id_text) {\scriptsize year=2019};
+		\node [below = 1cm of select_id] (orders) {dates};
 		
 		\node [below right = 1cm and 1cm of join] (select_year) {$\sigma$};
-		\node [below right = -0.3cm and -0.3cm of select_year] (select_year_text) {\scriptsize year=2019};
-		\node [below = 1cm of select_year] (dates) {dates};
+		\node [below right = -0.3cm and -0.3cm of select_year] (select_year_text) {\scriptsize prio=1};
+		\node [below = 1cm of select_year] (dates) {orders};
 		
 		\draw [thick, shorten > = 0.2cm, shorten < = 0.2cm] (count) -- (join);
 		\draw [thick, shorten > = 0.2cm, shorten < = 0.4cm] (join) -- (select_id);
@@ -38,7 +37,7 @@ Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
 		\coordinate [above = 1.7cm of l1] (l2);
 		\coordinate [below left = 0.05cm and 0.3cm of join] (l3);
 		\coordinate [below left = 0.4cm and 0cm of join] (l4);
-		\coordinate [below right = 0cm and 1cm of select_id] (l5);
+		\coordinate [below right = 0cm and 1.3cm of select_id] (l5);
 		\coordinate [below right = 0cm and 0cm of orders] (l6);
 		
 		\draw[thick, dashed, rounded corners=0.2cm]
@@ -49,7 +48,7 @@ Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
 		\coordinate [above left = -0.1cm and 0.5cm of join] (r3);
 		\coordinate [above left = 0cm and 0cm of count] (r4);
 		\coordinate [above right = 0cm and 0cm of count] (r5);
-		\coordinate [below right = -0.1cm and 1.4cm of select_year] (r6);
+		\coordinate [below right = -0.1cm and 1cm of select_year] (r6);
 		\coordinate [below right = 0cm and 0cm of dates] (r7);
 		
 		\draw[thick, dashed, rounded corners=0.2cm]
@@ -60,41 +59,43 @@ Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
 	\label{pipeline_example_plan}
 \end{figure}
 
+Das Pipelining-Prinzip, welches bei dem vorgestellten Query Compiler zum Einsatz kommt, besagt, dass der Anfrageplan in Pipelines aufgeteilt wird, welche von den Tupeln immer vollständig durchlaufen werden, bevor das Ergebnis materialisiert wird.
+Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
 Die Operatoren innerhalb des Anfrageplans aus Abbildung \ref{pipeline_example_plan} werden zu zwei Pipelines zusammengefasst.
 In der linken Pipeline wird die \textsf{orders}-Relation gelesen, die Selektion ausgeführt und die Hashtabelle für den Join berechnet.
-Die rechte Pipeline fasst das Lesen der \textsf{dates}-Relation, die Selektion, das Proben der Hashtabelle und das Zählen der Ergebnisse zusammen.
-Technisch werden die Operationen innerhalb der Pipeline zu einem einzigen Operator verschmolzen, indem der Query Compiler für eine Pipeline einen eigenständigen Kernel generiert, welcher mit der CUDA-Schnittstelle ausgeführt werden kann.
+Die rechte Pipeline fasst das Lesen der \textsf{dates}-Relation, die Selektion, die Probe-Operation der Hashtabelle und das Zählen der Ergebnisse zusammen.
+Technisch werden die Operationen innerhalb der Pipeline zu einem einzigen Operator verschmolzen, indem der Query Compiler für jede Pipeline einen eigenständigen Kernel generiert, welcher mit der CUDA-Schnittstelle ausgeführt werden kann.
 Der Vorteil des Pipelinings besteht drain, dass die Ergebnisse jedes Operators nicht immer wieder im Speicher materialisiert werden müssen, sondern die einzelnen Tupel stets in den GPU-Registern vorgehalten werden können, bis diese fertig verarbeitet wurden.
-
-Der verwendete Query Compiler verwendet die CUDA-Operationen zur Synchronisation von Threads\footnote{Siehe Kapitel \ref{sec:synchronisation_von_threads}}, um zwischen den Threads innerhalb eines Warps kommunizieren zu können.
-Da sämtliche Threads für den Aufruf der Synchronisierungsoperationen die gleiche Instruktion aufrufen müssen, ist das parallele Durchlaufen des Kernels nötig, wodurch auch der vom Query Compiler generierte Code diese Parallelität explizit macht.
 
 In Listing \ref{pipelining_example_code} wird der Code vorgestellt, welcher von dem Query Compiler für den in Abbildung \ref{pipeline_example_plan} dargestellten Anfrageplan generiert wurde.
 Hier ist zu erkennen, dass die drei Operationen innerhalb eines Kernels zusammengefasst wurden, wodurch eine Pipeline entsteht.
-
 Um jedem Thread eine Menge von Tupel zuweisen zu können, wird zunächst der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
 Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
-Die Anzahl dieser Elemente lässt sich durch $\frac{\text{Datensatzgröße}}{\text{Gridgröße} \times \text{Blockgröße}}$ berechnen.
 Die Variable \texttt{active} zeigt im Algorithmus an, ob der aktuelle Thread aktiv läuft oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
 
 In einem Schleifendurchlauf, bei dem das Element mit dem Index \texttt{loop\_var} untersucht wird, wird zunächst die rot markierte Selektion ausgeführt.
-Ist diese fehlgeschlagen, da das Datum nicht im Jahr 2019 liegt, wird der Thread deaktiviert und im weiteren Verlauf nicht mehr beachtet, bis er ein neues Tupel erhält.
+Ist diese fehlgeschlagen, da die Priorität der Bestellung nicht bei 1 liegt, wird der Thread deaktiviert und im weiteren Verlauf nicht mehr beachtet, bis er ein neues Tupel erhält.
 Hat sich das Tupel qualifiziert, folgt darauf der Hash Probe, welche in grün dargestellt ist.
-Dabei wird das Tupel in der übergebenen Hashtabelle \texttt{hashtable\_customer\_build} gesucht und anschließend über die zutreffenden Elemente iteriert.
+Dabei wird das Tupel in der übergebenen Hashtabelle \texttt{hashtable\_date\_key} gesucht und dementsprechend wieder die \texttt{active}-Variable angepasst.
+Schließlich wurde vom Query Compiler noch das Zählen der Ergebnisse umgesetzt, welches hier in gelb hervorgehoben wurde.
+Dabei wird wieder mithilfe der Synchronisierungsoperation \texttt{\_\_ballot\_sync} die Anzahl der aktiven Lanes gezählt, welche jeweils ein Element des Ergebnisses repräsentieren.
+Diese Anzahl wird daraufhin vom ersten Thread innerhalb des Warps auf das Ergebnis addiert. 
 
-\newpage
+Nach der Durchführung der gesamten Pipeline von Operationen für das untersuchte Tupel, wird der Index erhöht, sodass im nächsten Schleifendurchlauf das nächste Tupel untersucht wird.
+Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable in Zeile 20 auf \texttt{false} gesetzt wird.
+Wird anschließend mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
 
 \begin{lstlisting}[language=C++,
 caption=Generierter Kernel für den Beispielplan,
 label=pipelining_example_code,
 linebackgroundcolor={%
-\ifnum\value{lstnumber}>22
-	\ifnum\value{lstnumber}<26
+\ifnum\value{lstnumber}>24
+	\ifnum\value{lstnumber}<28
 		\color{red!25}
 	\fi
 \fi
-\ifnum\value{lstnumber}>26
-	\ifnum\value{lstnumber}<34
+\ifnum\value{lstnumber}>28
+	\ifnum\value{lstnumber}<33
 		\color{green!25}
 	\fi
 \fi
@@ -103,18 +104,14 @@ linebackgroundcolor={%
 		\color{yellow!25}
 	\fi
 \fi
-\ifnum\value{lstnumber}>37
-	\ifnum\value{lstnumber}<42
-		\color{green!25}
-	\fi
-\fi
 }]
 __global__
 void joinProbePipeline(
-	int *date_year,                      // year attribute of date table
-	int *date_complete,                  // complete attribute of date table
-	multi_ht *hashtable_customer_build,  // hashtable from other pipeline
-	int *number_of_matches) {            // return value
+	int *orders_prio,              	// priority attribute of orders table
+	int *orders_date,               // date attribute of orders table
+	unique_ht *hashtable_date_key,  // hashtable from other pipeline
+	int *number_of_matches) {       // return value
+	
 	// global index of the current thread,
 	// used as the iterator in this case
 	unsigned loop_var = ((blockIdx.x * blockDim.x) + threadIdx.x);
@@ -125,6 +122,7 @@ void joinProbePipeline(
 	bool active = true;
 	bool flush_pipeline = false;
 	while(!flush_pipeline) {
+	
 		// element index must not be higher than number of tuples
 		active = loop_var < TUPLE_COUNT;
 		
@@ -133,37 +131,19 @@ void joinProbePipeline(
 		
 		// selection
 		if (active)
-			active = date_year[loop_var] == 2019;
+			active = orders_prio[loop_var] == 1;
 		
 		// hash join probe
-		int matchOffset = 0, matchEnd = 0;
 		if (active)
-			active = hashProbeMulti(hashtable_customer_build, HASHTABLE_SIZE,
-				date_complete[loop_var], matchOffset, matchEnd);
+			active = hashProbeUnique(hashtable_date_key, HASHTABLE_SIZE, 
+				hash(orders_date[loop_var]))
 		
-		while (__any_sync(0xFFFFFFFF, active)) {
-			// count and write
-			numProj = __popc(__ballot_sync(0xFFFFFFFF, active))
-			if (threadIdx.x % 32 == 0)
-				atomicAdd(number_of_matches, numProj);
-
-			matchOffset++;
-			active = matchOffset < matchEnd;
-		}
+		// count and write
+		numProj = __popc(__ballot_sync(ALL_LANES, active))
+		if (threadIdx.x % 32 == 0)
+			atomicAdd(number_of_matches, numProj);
 		
 		loop_var += step;
 	}
 }
 \end{lstlisting}
-
-An dieser Stelle fällt die parallele Struktur des Kernels besonders auf, da die Ergebnisse des Hash Probes parallel von den Threads durchlaufen werden und diese erst aufhören, wenn der letzte Thread den ihm zugewiesenen Datensatz vollständig durchlaufen hat.
-Daher setzt ein Thread, welcher seinen Teil der zutreffenden Elemente aus dem Hash Probe vollständig durchlaufen hat, lediglich seine \texttt{active}-Variable auf \texttt{false} und iteriert dann parallel mit den anderen Threads weiter.
-Mit der Synchronisierungsoperation \texttt{\_\_any\_sync} lässt sich in Zeile 33 überprüfen, ob sämtliche Lanes auf diese Weise inaktiv geworden sind, wodurch der Hash Probe abgeschlossen ist.
-
-Schließlich wurde vom Query Compiler innerhalb des Hash Probes noch das Zählen der Ergebnisse umgesetzt, welches hier in gelb hervorgehoben wurde.
-Dabei wird wieder mithilfe der Synchronisierungsoperation \texttt{\_\_ballot\_sync} die Anzahl der aktiven Lanes gezählt, welche jeweils ein Element des Ergebnisses repräsentieren.
-Diese Anzahl wird daraufhin vom ersten Thread innerhalb des Warps auf das Ergebnis addiert. 
-
-Nach der Durchführung der gesamten Pipeline von Operationen für das untersuchte Tupel, wird in Zeile 43 der Index erhöht, sodass im nächsten Schleifendurchlauf das nächste Tupel untersucht wird.
-Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable in Zeile 18 auf \texttt{false} gesetzt wird.
-Wird in Zeile 21 mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.

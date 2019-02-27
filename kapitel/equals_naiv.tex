@@ -1,17 +1,21 @@
 \chapter{Einfacher, paralleler String-Vergleich}
 
-Für die Evaluation des Lane-Refill-Verfahrens für die Verarbeitung von String-Daten wird zunächst ein einfacher String-Vergleich auf einer GPU untersucht.
-Ein Vergleich auf Gleichheit ist dabei die einfachste Variante von String-Verarbeitung, die vom Lane-Refill profitieren könnte.
-Diese Untersuchung wird dabei helfen, zu erfahren, ob die Anwendung des Lane-Refill-Verfahrens bei String-Daten allgemein Potenzial dafür bietet, den Durchsatz entsprechender Anwendungen zu erhöhen.
+Um einige Techniken zur String-Verarbeitung in kompilierten Anfragepipelines auf Grafikkarten entwickeln zu können, wird zunächst ein Operator für den einfachen String-Vergleich für den Query Compiler erarbeitet.
+Ein Vergleich auf Gleichheit stellt dabei die einfachste, sinnvolle Variante von String-Verarbeitung dar, wodurch der Einfluss vieler Eigenschaften von Strings auf die Ausführung entsprechender Operationen leicht untersucht werden kann.
 
-Zunächst wird dazu ein String-Vergleich mittels der CUDA Schnittstelle ohne spezielle Optimierungen implementiert, um einen Vergleich mit der optimierten Version durchführen zu können.
-Außerdem wird eine leichte Anpassung an dem Verfahren vorgenommen, sodass ein alternativer Workload für weitere Tests genutzt werden kann.
+Zunächst wird dazu die Motivation hinter einer derartigen Untersuchung erläutert und eine bestehende Technik zur String-Verarbeitung erklärt.
+Außerdem wird eine Umsetzung des einfachen String-Vergleichs mittels der CUDA-Schnittstelle ohne spezielle Optimierungen vorgestellt und für einen alternativen Workload für weitere Tests leicht angepasst werden.
+Schließlich wird beurteilt, ob die Lösung das Potential hat eine optimale Performanz zu bieten und auf einen Nachteil der einfachen Implementierung eingegangen.
 
-\section{Vorgehen}
+\section{Motivation}
 
-Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tiefgehende Optimierungen umgesetzt.
-Das hier vorgestellte Verfahren soll eine lange Liste von Zeichenketten mit einem vorher spezifizierten String vergleichen.
-Diese Operation könnte im Kontext einer Datenbankanfrage einer Selektion über eine Spalte mit String-Daten entsprechen.
+%TODO: todo
+
+\section{Umsetzung des einfachen String-Vergleichs}
+
+Als Basis für die Untersuchungen wird der String-Vergleich-Operator für den Query Compiler zunächst naiv, also ohne tiefgehende Optimierungen umgesetzt.
+Mithilfe dieses Operators kann in einer Datenbankabfrage beispielsweise eine Selektion über eine Spalte mit Spring-Daten durchgeführt werden.
+Die Anforderung des Operators besteht somit darin, eine Liste von Zeichenketten mit einem vorher spezifizierten String zu vergleichen und zu entscheiden, ob diese identisch sind oder nicht.
 
 Zur Durchführung dieser Operation wird jedem Thread der GPU eine Zeichenkette aus dem Datensatz zugewiesen.
 Zunächst wird überprüft, ob die Länge des Strings mit der des Suchstrings übereinstimmt, sodass der entsprechende Eintrag direkt verworfen werden kann.
@@ -21,8 +25,6 @@ Sobald eine Ungleichheit gefunden wurde, wird ein entsprechendes Flag gesetzt un
 Sämtliche Threads innerhalb eines Warp werden entsprechend dem Verarbeitungsmodell der GPU parallel abgearbeitet.
 Somit sind die Positionen, an denen die Strings verglichen werden ebenfalls für alle Threads identisch.
 Sobald der Vergleichsstring im gesamten Warp vollständig durchlaufen wurde, wird das Zwischenergebnis geschrieben.
-Im Falle dieser konkreten Untersuchung wird hier der Einfachheit halber lediglich die Anzahl der passenden Zeichenketten gezählt.
-Es wäre allerdings auch denkbar, dass die Indizes der entsprechenden Einträge gespeichert wird, oder in einer Pipelining-Umgebung der Eintrag an die nächste Operation in der Pipeline weitergegeben wird.
 Sollten alle Threads in dem Warp vorzeitig feststellen, dass keiner der Strings mit dem Suchstring übereinstimmt, wird die aktuelle Untersuchung vorzeitig abgebrochen.
 
 Schließlich wird jedem Thread eine neue Zeichenkette aus dem Datensatz zugewiesen, sodass das Verfahren im weiteren Verlauf wiederholt wird.
@@ -145,95 +147,43 @@ Sobald der gesamte Datensatz durchlaufen wurde, ist die Berechnung abgeschlossen
 In Abbildung \ref{equals_naiv_algorithmus} ist der Ablauf des Algorithmus innerhalb eines Warps mit drei Threads dargestellt.
 Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnung frühzeitig abgebrochen werden kann und an welchen Stellen das Ergebnis geschrieben wird und neue Daten aus dem Datensatz geholt werden.
 
-\section{Implementierung}
-
-Als Basis für die Untersuchung wird zunächst der Gleichheitstest für Strings naiv, also ohne tief greifende Optimierungen umgesetzt.
-Dies gibt Gelegenheit dazu, die Programmierung einfacher Algorithmen mithilfe der CUDA Schnittstelle für Grafikkarten darzustellen.
-Da die Analyse im Rahmen dieser Arbeit innerhalb einer Pipelining-Umgebung durchgeführt werden, lassen sich hier außerdem einige Besonderheiten der Implementierung erläutern.
-
-\newpage
-
 \begin{lstlisting}[language=C++,
-caption=Methodensignatur des Kernels,
-label=naive_equals_signature]
-__global__
-void naiveKernel(
-	int *char_offset,         // indices of the first letter of every string
-	char *data_content,       // concatenated list of compare strings 
-	char *search_string,      // string that will be searched for
-	int search_length,        // length of the search string
-	int line_count,           // number of lines in the data set
-	int *number_of_matches) { // return value for the number of matches
-	/* implementation */
-}
-\end{lstlisting}
-
-Für die Umsetzung des Gleichheitstests ist am interessantesten, wie lange das Ausführen des eigentlichen Kernels zum Abgleich des Datensatzes dauert.
-Dieser Kernel erwartet, dass die benötigten Daten vorher vom Hauptspeicher in den Speicherbereich der GPU kopiert wurden und dort zur Verfügung stehen.
-In Listing \ref{naive_equals_signature} ist die Methodensignatur des Kernels für den einfachen Stringvergleich dargestellt.
-
-Die Position des Datensatzes, welcher mit dem Vergleichsstring abgeglichen werden soll, wird über den Zeiger \texttt{data\_content} übergeben.
-Der Datensatz besteht aus einer Aneinanderreihung der entsprechenden Zeichenketten ohne Trennzeichen.
-Damit daraus die ursprünglichen Strings extrahiert werden können, gibt es einen zweiten Array, welcher Informationen über die Indizes der Einzelstrings innerhalb des Datensatzes enthält.
-Die Position dieser Informationen wird über die Variable \texttt{char\_offset} übergeben.
-Ebenfalls muss natürlich ein Zeiger auf den Suchstring und dessen Länge in den entsprechenden Parametern \texttt{search\_string} und \texttt{search\_string\_length} mitgeliefert werden.
-Um die Berechnung rechtzeitig vor Speicherüberschreitungen abbrechen zu können, wird schließlich noch die Variable \texttt{line\_count} übergeben, welche die Anzahl der Zeichenketten im Datensatz beschreibt.
-Der letzte Parameter \texttt{number\_of\_matches} dient dazu, dass an die entsprechende Speicherstelle das Ergebnis der Berechnung geschrieben werden kann und dieses aus dem Hauptprogramm heraus wieder ausgelesen werden kann.
-
-\newpage
-
-\begin{lstlisting}[language=C++,
-	caption=Naive Implementierung des String-Vergleichs,
+	caption=Naive Implementierung einer Selektion von Strings,
 	label=naive_equals]
-__global__
-void naiveKernel( /* parameters */ ) {
+data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
 
-	/* define loop_var, step, active and flush_pipeline */
+// if string lengths are unequals, discard
+if (active && data_length != search_length)
+	active = false;
+
+int search_id = 0;
+
+// iterate over strings completely or until they don't match anymore
+while(active && search_id < search_length) {
+	int data_id = search_id + char_offset[loop_var];
 	
-	while(!flush_pipeline) {
-		active = loop_var < line_count;
-		flush_pipeline = !__ballot_sync(0xFFFFFFFF, active);
-		
-		data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
-		
-		// if string lengths are unequals, discard
-		if (active && data_length != search_length)
-			active = false;
-		
-		int search_id = 0;
-		
-		// iterate over strings completely or until they don't match anymore
-		while(__any_sync(0xFFFFFFFF, active) && search_id < search_length) {
-			int data_id = search_id + char_offset[loop_var];
-			
-			// when strings don't match, inactivate the lane
-			if (active && data_content[data_id] != search_string[search_id])
-			active = false;
-			
-			search_id++;
-		}
-		
-		// if still active, a match has been found
-		if (active)
-			atomicAdd(number_of_matches, 1);
-		
-		loop_var += step;
-	}
+	// when strings don't match, inactivate the lane
+	if (active && data_content[data_id] != search_string[search_id])
+		active = false;
+	
+	search_id++;
 }
 \end{lstlisting}
 
-In Listing \ref{naive_equals} ist die Implementierung des Algorithmus dargestellt, welcher alle Strings aus dem Datensatz mit dem Suchstring vergleicht und daraufhin die Anzahl der passenden Zeichenketten zurückliefert.
-Die Struktur des Kernels ist dieselbe wie die des in Kapitel \ref{sec:pipelining} vorgestellten Beispiels, weshalb einige Stellen hier gekürzt wurden.
-Es wird ebenfalls der globale Index des aktuellen Threads als Schleifenindex \texttt{loop\_var} verwendet und so über den gesamten Datensatz iteriert.
+In Listing \ref{naive_equals} ist die Implementierung des Operators dargestellt, welcher in einer kompilierten Anfragepipeline die Selektion eines String-Attributs durchführen kann.
+Dieser würde beispielsweise die rot markierte Selektion in Listing \ref{pipelining_example_code} ersetzen, falls das \emph{prio}-Attribut in dem Beispiel aus Abbildung \ref{pipeline_example_plan} Strings enthalten würde und alle Bestellungen mit der Priorität \emph{HIGH} gesucht werden würden.
+Nach Abschluss der Berechnung ist der Wert der \texttt{active}-Variable genau dann \texttt{true}, wenn der String mit dem gesuchten String übereinstimmt, sodass im Anschluss mit weiteren Operationen fortgefahren werden kann.
 
-Die Variable \texttt{active} zeigt im Algorithmus an, ob das aktuell untersuchte Datenelement noch aktiv geprüft wird, oder dieses bereits verworfen wurde.
-Somit zeigt diese Variable auch an, ob der aktuelle Thread aktiv läuft, oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
-Im ersten Schritt wird in Zeile 13 für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
+Diese Implementierung erwartet, dass einige Daten vorher vom Hauptspeicher in den Speicherbereich der GPU kopiert wurden und dort zur Verfügung stehen.
+Der Datensatz, der mit dem Vergleichsstring abgeglichen werden soll, besteht aus einer Aneinanderreihung der entsprechenden Zeichenketten ohne Trennzeichen und ist in der Variable \texttt{data\_content} gespeichert.
+Damit daraus die ursprünglichen Strings extrahiert werden können, gibt es das Feld \texttt{char\_offset}, welches Informationen über die Indizes der Einzelstrings innerhalb des Datensatzes enthält.
+Ebenfalls muss natürlich ein Zeiger auf den Suchstring und dessen Länge in den entsprechenden Parametern \texttt{search\_string} und \texttt{search\_string\_length} vorhanden sein.
+Um die Berechnung rechtzeitig vor Speicherüberschreitungen abbrechen zu können, wird schließlich noch die Variable \texttt{line\_count} benötigt, welche die Anzahl der Zeichenketten im Datensatz beschreibt.
 
-Sind die Längen identisch, wird in der in Zeile 19 beginnenden Schleife über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt. %TODO: Schleifenbedingung genauer erklären; __any_sync braucht man hier eigentlich noch nicht, sondern erst später beim Lane Refill
-Die Struktur dieser Schleife ähnelt sehr stark dem Iterieren über die passenden Elemente aus der Hashtabelle in dem Beispiel aus Kapitel \ref{sec:pipelining}.
-Ist die Schleife vollständig durchlaufen oder vorzeitig abgebrochen worden, kann am Zustand der \texttt{active}-Variable abgelesen werden, ob die Strings übereinstimmen oder nicht.
-Somit wird die Anzahl passender Elemente gegebenenfalls im Datensatz erhöht und der Index des zu untersuchenden Elementes um die vorher berechnete Schrittweite erhöht.
+Im ersten Schritt wird für einen String überprüft, ob dessen Länge mit der des Suchstrings übereinstimmt und dieser anderenfalls verworfen.
+Sind die Längen identisch, wird in der Schleife über beide Zeichenketten iteriert, bis das Ende beider erreicht wurde, oder festgestellt wird, dass ein Zeichen aus dem Vergleichsstring nicht mit dem aus dem Suchstring übereinstimmt.
+An dieser Stelle fällt die parallele Struktur des Kernels besonders auf, da die Zeichen aller Strings parallel von den Threads durchlaufen werden und diese erst aufhören, wenn der letzte Thread den ihm zugewiesenen Datensatz vollständig durchlaufen hat.
+Ist die Schleife abgeschlossen oder vorzeitig abgebrochen worden, kann am Zustand der \texttt{active}-Variable abgelesen werden, ob die Strings übereinstimmen oder nicht.
 
 \section{Präfixtest als alternativer Workload}
 
