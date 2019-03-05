@@ -9,7 +9,17 @@ Schließlich wird beurteilt, ob die Lösung das Potential hat eine optimale Perf
 
 \section{Motivation}
 
-%TODO: todo
+In den meisten modernen Anwendungsfällen für Datenbankmanagementsysteme stellt die Verarbeitung von String-Daten einen wesentlichen Bestandteil dar.
+So wird häufig auf Gleichheit, Ungleichheit, das Enthaltensein eines Teilstrings oder das Erfüllen eines regulären Ausdrucks getestet.
+Die effiziente Berechnung unterschiedlicher Operatoren auf Zeichenketten ist somit essentiell für das Erreichen eines hohen Durchsatzes und für das Gewährleisten von maximaler Performanz.
+In diesem Kontext versprechen Grafikkarten durch ihre hochgradig parallele Architektur in der Theorie eine bestmögliche Leitung.
+
+Bisherige Ansätze zur Verarbeitung von Zeichenketten auf Grafikkarten greifen auf das Konzept der Dictionaries zurück.
+Dabei wird eine Tabelle mit allen Strings aufgebaut und zu diesen ein Schlüssel abgespeichert, welcher zusammen mit jedem String in den anderen Tabellen der Datenbank gespeichert wird.
+Somit können String-Operationen durch andere Operationen auf den Schlüsseln abgebildet werden, wodurch diese eine einheitliche Struktur und damit ein effizientes Ausführungsmuster auf Grafikkarten erhalten.
+Das Aufbauen und Verwalten des für diese Technik verwendeten Dictionaries erzeugt vor allem bei Daten, die sich häufig ändern, einen hohen Aufwand, worunter die Leistungsfähigkeit des Gesamtsystems sinkt.
+
+Um diesen Verwaltungsaufwand für eine zusätzliche Datenstruktur zu eliminieren, wird eine Lösung entwickelt, die direkt auf den Zeichenketten arbeitet und trotzdem eine hohe Performanz bietet.
 
 \section{Umsetzung des einfachen String-Vergleichs}
 
@@ -146,6 +156,8 @@ Sobald der gesamte Datensatz durchlaufen wurde, ist die Berechnung abgeschlossen
 
 In Abbildung \ref{equals_naiv_algorithmus} ist der Ablauf des Algorithmus innerhalb eines Warps mit drei Threads dargestellt.
 Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnung frühzeitig abgebrochen werden kann und an welchen Stellen das Ergebnis geschrieben wird und neue Daten aus dem Datensatz geholt werden.
+
+\newpage
 
 \begin{lstlisting}[language=C++,
 	caption=Naive Implementierung einer Selektion von Strings,
