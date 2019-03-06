@@ -22,6 +22,7 @@ Das Aufbauen und Verwalten des für diese Technik verwendeten Dictionaries erzeu
 Um diesen Verwaltungsaufwand für eine zusätzliche Datenstruktur zu eliminieren, wird eine Lösung entwickelt, die direkt auf den Zeichenketten arbeitet und trotzdem eine hohe Performanz bietet.
 
 \section{Umsetzung des einfachen String-Vergleichs}
+\label{sec:equals_umsetzung}
 
 Als Basis für die Untersuchungen wird der String-Vergleich-Operator für den Query Compiler zunächst naiv, also ohne tiefgehende Optimierungen umgesetzt.
 Mithilfe dieses Operators kann in einer Datenbankabfrage beispielsweise eine Selektion über eine Spalte mit Spring-Daten durchgeführt werden.
@@ -198,5 +199,16 @@ An dieser Stelle fällt die parallele Struktur des Kernels besonders auf, da die
 Ist die Schleife abgeschlossen oder vorzeitig abgebrochen worden, kann am Zustand der \texttt{active}-Variable abgelesen werden, ob die Strings übereinstimmen oder nicht.
 
 \section{Präfixtest als alternativer Workload}
+
+Als zusätzliche String-Operation für die ein simpler Algorithmus existiert, wurde neben dem exakten String-Vergleich auch ein Präfixtest implementiert.
+Dabei soll geprüft werden, ob die Strings aus einer Datenbanktabelle einen vordefinierten Präfix besitzen.
+
+Der Algorithmus arbeitet ähnlich wie das in Kapitel \ref{sec:equals_umsetzung} vorgestellte Verfahren zum exakten String-Vergleich, mit einem einzigen Unterschied.
+Für jede Zeichenkette aus der Tabelle wird zunächst geprüft, ob diese länger als der gesuchte Präfix ist, anstatt zu prüfen, ob die Längen identisch sind.
+Danach verfährt der Algorithmus wie gehabt, sodass wieder beide Strings Zeichen für Zeichen verglichen werden, bis das Ende des Such-Präfixes erreicht ist.
+An der Implementierung in Listing \ref{naive_equals} ändert sich dementsprechend fast nichts, es muss nur die Bedingung in Zeile 4 durch \texttt{active \&\& data\_length >= search\_length} ersetzt werden.
+
+Dadurch, dass die Prüfung auf exakte Längengleichheit entfällt, müssen je nach Anwendungsfall viele Zeichenketten weiter durchlaufen werden, da diese nicht schon im ersten Schritt ausgeschlossen werden können, wie bei dem exakten String-Vergleich.
+Durch diesen Umstand und durch die Tatsache, dass ein Präfixtest in realen Systemen ein häufig gefragter Anwendungsfall ist, ergibt diese Implementierung einen interessanten alternativen Workload, den es zu untersuchen gilt.
 
 \section{Schlechte Auslastung der GPU}
