@@ -212,3 +212,22 @@ Dadurch, dass die Prüfung auf exakte Längengleichheit entfällt, müssen je na
 Durch diesen Umstand und durch die Tatsache, dass ein Präfixtest in realen Systemen ein häufig gefragter Anwendungsfall ist, ergibt diese Implementierung einen interessanten alternativen Workload, den es zu untersuchen gilt.
 
 \section{Schlechte Auslastung der GPU}
+
+Das in diesem Kapitel vorgestellte, naive Verfahren zum einfachen String-Vergleich hat leider den Nachteil, dass es die Ressourcen der GPU nicht besonders effizient ausnutzt.
+In Abbildung \ref{equals_naiv_algorithmus} sind in grau die inaktiven Threads dargestellt.
+Diese sind inaktiv geworden, da erkannt wurde, dass sie nicht mit der gesuchten Zeichenkette übereinstimmen, da sie entweder eine unpassende Länge besitzen oder im Laufe des Vergleichs der einzelnen Zeichen ein Unterschied festgestellt wurde.
+Die untersuchten Strings aus der Tabelle können völlig unterschiedlich geartet sein, weshalb es häufig vorkommt, dass einige Threads ihre Untersuchung bereits abgeschlossen oder vorzeitig unterbrochen haben, während andere Threads innerhalb des Warps noch lange weiter rechnen müssen.
+Aufgrund des Programmiermodells von Grafikkarten, laufen die inaktiven Threads weiter synchron zu den aktiven Threads des Warps, dabei wird allerdings das Ergebnis verworfen und diese verrichten keine nutzbare Arbeit mehr.
+
+Im schlimmsten Fall werden 31 Threads aus einem Warp Zeichenketten mit unpassender Länge zugewiesen und einem einzigen Thread eine mit dem Vergleichsstring übereinstimmende Zeichenkette zugeteilt.
+Somit stellen 31 Threads im ersten Schritt fest, dass die Länge des Strings nicht mit der des Vergleichsstrings übereinstimmt und werden somit inaktiv.
+Der Thread mit dem passenden String muss allerdings noch über jedes Zeichen iterieren, bevor sich der gesamte Warp neue Strings holen kann.
+Es kann also sein, dass für die Dauer der Iteration über den Suchstring die GPU nur zu $1/32$ ausgelastet ist, weshalb die Performanz dieser Lösung zu wünschen übrig lässt.
+
+Es wäre dagegen schön, wenn den inaktiven Threads dynamisch neue Arbeit zugewiesen werden könnte, sobald diese inaktiv geworden sind.
+Da in dem Algorithmus lediglich zwei Zeichen an zwei Positionen verglichen werden und diese Position für jeden Thread unterschiedlich sein kann, könnte ein Thread, sobald er inaktiv geworden ist, sich eine neue Zeichenkette holen und mit dieser weiter arbeiten.
+Mit diesem Vorgehen könnte zwar eine hohe Auslastung erreicht werden, da die Threads niemals wirklich inaktiv werden können, allerdings funktioniert dies nicht mit dem in Kapitel \ref{sec:pipelining} vorgestellten Pipelining-Modell.
+Dies liegt daran, dass gegebenenfalls noch beliebig viele andere Operationen in der Pipeline vor dem String-Vergleich durchgeführt werden müssen, bevor eine neue Zeichenkette an den Thread übergeben wird.
+
+In Kapitel \ref{sec:equals_lane_refill} wird eine weitere Technik vorgestellt, mit der die Auslastung der GPU verbessert werden kann.
+Diese wird auch im Umfeld einer Anfragepipeline funktionieren und somit für den praktischen Einsatz geeignet sein.
