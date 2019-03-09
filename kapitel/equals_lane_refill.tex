@@ -1,7 +1,7 @@
 \chapter{Verbesserung des einfachen String-Vergleichs}
 \label{sec:equals_lane_refill}
 
-\begin{figure}
+\begin{figure}[ht]
 	\centering
 	\begin{tikzpicture}
 	\node (x11) [draw,thick,minimum width=3,minimum height=3] {};
@@ -85,4 +85,54 @@
 	\caption{Divergence Buffer}
 \end{figure}
 
-\section{Implementierung}
+\newpage
+
+\begin{lstlisting}[language=C++,
+caption=Struktur der String-Selektion mit Lane Refill,
+label=equals_lane_refill_code]
+while(!flush_pipeline) {
+
+	/* execute previous operators in the pipeline */
+	
+	// if string lengths are unequal, discard
+	if (active && data_length != search_length)
+		active = false;
+	
+	int numactive = __popc(__ballot_sync(ALL_LANES, active));
+	int bufferelements = 0;
+	
+	while(bufferelements + numactive > THRESHOLD) {
+	
+		if (numactive < THRESHOLD) {
+		
+			/* refill empty lanes from buffer in case of underutilization */
+			
+			bufferelements = bufferelements - numrefill;
+		}
+		
+		// when strings don't match, inactivate the lane
+		if (active && data_content[data_id] != search_string[search_id])
+			active = false;
+		
+		search_id++;
+		
+		if (search_id == search_length) {
+		
+			/* execute following operators in the pipeline */
+		
+		}
+		
+		numactive = __popc(__ballot_sync(ALL_LANES, active));
+	}
+		
+	if (numactive > 0) {
+	
+		/* flush active lanes to buffer */
+		
+		bufferelements += numactive;
+		active = false;
+	}
+	
+	loop_var += step;
+}
+\end{lstlisting}
