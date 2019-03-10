@@ -1,6 +1,8 @@
 \chapter{Verbesserung des einfachen String-Vergleichs}
 \label{sec:equals_lane_refill}
 
+\section{Funktionsweise des String-Vergleichs mit Lane Refill}
+
 \begin{figure}[ht]
 	\centering
 	\begin{tikzpicture}
@@ -85,6 +87,8 @@
 	\caption{Divergence Buffer}
 \end{figure}
 
+\section{Struktur des optimierten String-Vergleichs im CUDA-Kernel}
+
 \newpage
 
 \begin{lstlisting}[language=C++,
@@ -136,3 +140,7 @@ while(!flush_pipeline) {
 	loop_var += step;
 }
 \end{lstlisting}
+
+\section{Umsetzung der Pufferung auf Grafikkarten}
+
+\section{Loop Unrolling}
