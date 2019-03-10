@@ -210,9 +210,76 @@ Als erstes muss also bestimmt werden, wie viele Lanes vor der betrachteten Lane 
 Der Wert \texttt{prefixlanes} ist dabei eine Bitmaske mit einem Bit für jede Lane im Warp, bei der für alle vor der aktuellen Lane liegenden Lanes ein Bit gesetzt wurde.
 Gibt es weniger inaktive Lanes vor der betrachteten als Elemente im Puffer, darf sich diese Lane ein neues Tupel aus dem Puffer holen.
 
-%TODO: Abbildung einfügen
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+	% buffer
+	\node (b1) [draw, thick, minimum width=6cm, minimum height=1.5cm] {};
+	\node (b2) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b1] {};
+	\node (b3) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b2] {};
+	\node (b4) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b3] {};
+	\node (b5) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b4] {};
+	\node (b6) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b5] {};
+	\node (b7) [draw, thick, minimum width=1.75cm, minimum height=1.5cm, right = 0cm of b6] {};
+	
+	% warp
+	\node (w1) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, below right = 1.5cm and -0.1cm of b1.south] {};
+	\node (w2) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w1, fill=black!30] {};
+	\node (w3) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w2, fill=black!30] {};
+	\node (w4) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w3] {};
+	\node (w5) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w4] {};
+	\node (w6) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w5, fill=black!30] {};
+	\node (w7) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w6] {};
+	\node (w8) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w7] {};
+	
+	% arrows to warp
+	\coordinate [below = 0.3cm of b4.south] (arr11);
+	\coordinate [above = 0.6cm of w2.north] (arr12);
+	\draw [->, thick, dashed, rounded corners=0.4cm] (b4.south) -- (arr11) -- (arr12) -- (w2.north);
+	
+	\coordinate [below = 0.4cm of b5.south] (arr21);
+	\coordinate [above = 0.5cm of w3.north] (arr22);
+	\draw [->, thick, dashed, rounded corners=0.4cm] (b5.south) -- (arr21) -- (arr22) -- (w3.north);
+	
+	\coordinate [below = 0.5cm of b6.south] (arr31);
+	\coordinate [above = 0.4cm of w6.north] (arr32);
+	\draw [->, thick, rounded corners=0.3cm] (b6.south) -- (arr31) -- (arr32) -- (w6.north);
+	
+	% offset ticks
+	\coordinate [above = 0.5cm of b1.north west] (tick1);
+	\coordinate [above = 0.5cm of b2.north west] (tick2);
+	\coordinate [above = 0.5cm of b4.north west] (tick3);
+	\coordinate [above = 0.5cm of b6.north west] (tick4);
+	
+	\draw [thick] (b1.north west) -- (tick1);
+	\draw [thick] (b2.north west) -- (tick2);
+	\draw [thick] (b4.north west) -- (tick3);
+	\draw [thick] (b6.north west) -- (tick4);
+	
+	% offset arrows
+	\coordinate [below = 0.25cm of tick1] (arrow1);
+	\coordinate [below = 0.25cm of tick2] (arrow2);
+	\coordinate [below = 0.25cm of tick3] (arrow3);
+	\coordinate [below = 0.25cm of tick4] (arrow4);
+	
+	\draw [->, thick] (arrow1) -- (arrow2);
+	\draw [->, thick] (arrow2) -- (arrow3);
+	\draw [->, thick] (arrow3) -- (arrow4);
+	
+	% labels
+	\node [above = 0.3cm of b1.north] {\textsf{bufferbase}};
+	\node [above = 0.3cm of b3.north west, align=center] {\textsf{num}\\\textsf{remaining}};
+	\node [above = 0.3cm of b5.north west, align=center] {\textsf{previous}\\\textsf{inactive}};
+	
+	\node [right = 0.3cm of b7] {\textsf{buffer}};
+	\node [right = 0.3cm of w8] {\textsf{warp}};
+	
+	\end{tikzpicture}
+	\caption{Berechnung des Indexes für ein Element im Puffer}
+	\label{fig:buffer_index}
+\end{figure}
 
-Um das richtige Element zu erhalten, muss zunächst wie in Abbildung RRRRRRRRRRRRRREFERENZZZZZZZZZZZZZZZZZ dargestellt dessen Index im Puffer errechnet werden, welcher sich aus verschiedenen Offsets Zusammensetzt.
+Um das richtige Element zu erhalten, muss zunächst wie in Abbildung \ref{fig:buffer_index} dargestellt dessen Index im Puffer errechnet werden, welcher sich aus verschiedenen Offsets Zusammensetzt.
 \texttt{buffer\_base} bestimmt dabei die Position des Speicherbereichs, welcher dem aktuellen Warp im Block zugewiesen wurde.
 Da der Puffer grundsätzlich von rechts abgearbeitet wird, muss noch der Wert \texttt{num\_remaining} für die Elemente, die im Puffer verbleiben sollen, addiert werden und schließlich noch die Tupel übersprungen werden, die für Lanes mit niedrigerem Index bestimmt sind.
 
@@ -236,7 +303,7 @@ if (numactive > 0) {
 \end{lstlisting}
 
 Das in Listing \ref{flush_code} dargestellte Verfahren zum Einlagern übriger, aktiver Lanes in den Puffer funktioniert ähnlich wie das wieder befüllen von Lanes.
-Zunächst wird wieder der Index berechnet, auf den die aktuelle Lane im Puffer zugreifen kann, was identisch zu dem in Abbildung RRRRRRRREFERENZZZZZZZZ dargestellten Verfahren funktioniert, nur dass in diesem Falle die aktiven Lanes statt der inaktiven Lanes als Offset verwendet werden.
+Zunächst wird wieder der Index berechnet, auf den die aktuelle Lane im Puffer zugreifen kann, was identisch zu dem in Abbildung \ref{fig:buffer_index} dargestellten Verfahren funktioniert, nur dass in diesem Falle die aktiven Lanes statt der inaktiven Lanes als Offset verwendet werden.
 Alle verbleibenden, aktiven Lanes speichern daraufhin die Position ihres vorher untersuchten Strings und den als nächstes zu untersuchenden Index innerhalb des Strings im Puffer ab.
 Schließlich wird noch die Anzahl der Elemente im Puffer erhöht und der Algorithmus kann anschließend wie gehabt verfahren.
 
