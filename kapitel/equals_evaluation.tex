@@ -1,72 +1,89 @@
 \chapter{Evaluation des einfachen String-Vergleichs}
 
+\section{Testumgebung}
+
 \section{Verwendete Workloads und deren Merkmale}
 
 \section{Vorstellung der Messergebnisse}
 
-\begin{tikzpicture}
-	\begin{axis}[
-		ybar,		% Säulendiagramm
-		xlabel={Selektivität},	% Achsenbeschriftung
-		xtick=data,
-		xticklabels from table={daten/type_equals.csv}{Selectivity},	% Beschriftung der Markierungen 
-		width=\textwidth,	% Diagrammbreite
-		bar width=0.2cm,	% Breite der Säulen
-		ylabel={Laufzeit},	% Achsenbeschritung
-		ymin=0,		% Säulen stehen auf der X-Achse
-		%legend style={at={(0,0)}}
-		legend pos=north west,		% Legende am oberen linken Rand positionieren
-		legend style={legend cell align=left} % Text linksbündig anordnen
-		]
-		\addplot table [x expr=\coordindex, y=equals]{daten/type_equals.csv}; 
-		\addlegendentry{Naiv};
-		\addplot table [x expr=\coordindex, y=buffer]{daten/type_equals.csv};
-		\addlegendentry{Mit Divergence Buffer}
-		\addplot table [x expr=\coordindex, y=unroll_2]{daten/type_equals.csv};
-		\addlegendentry{Mit Loop Unrolling 2}
-		\addplot table [x expr=\coordindex, y=unroll_3]{daten/type_equals.csv};
-		\addlegendentry{Mit Loop Unrolling 3}
-	\end{axis}
-\end{tikzpicture}
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/type_equals.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.2cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			%legend style={at={(0,0)}}
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=equals]{daten/type_equals.csv}; 
+			\addlegendentry{Naiv};
+			\addplot table [x expr=\coordindex, y=buffer]{daten/type_equals.csv};
+			\addlegendentry{Mit Lane Refill}
+			\addplot table [x expr=\coordindex, y=unroll_2]{daten/type_equals.csv};
+			\addlegendentry{In Zweierschritten}
+			\addplot table [x expr=\coordindex, y=unroll_3]{daten/type_equals.csv};
+			\addlegendentry{In Dreierschritten}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeit für Gleichheitstest mit verschiedener Verteilung beim Type-Benchmark}
+	\label{fig:type_equals}
+\end{figure}
 
-\begin{tikzpicture}
-	\begin{axis}[
-		ybar,		% Säulendiagramm
-		xlabel={Selektivität},	% Achsenbeschriftung
-		xtick=data,
-		xticklabels from table={daten/type_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
-		width=\textwidth,	% Diagrammbreite
-		bar width=0.4cm,	% Breite der Säulen
-		ylabel={Laufzeit},	% Achsenbeschritung
-		ymin=0,		% Säulen stehen auf der X-Achse
-		legend pos=north west,		% Legende am oberen linken Rand positionieren
-		legend style={legend cell align=left} % Text linksbündig anordnen
-		]
-		\addplot table [x expr=\coordindex, y=equals]{daten/type_prefix.csv}; 
-		\addlegendentry{Naiv};
-		\addplot table [x expr=\coordindex, y=buffer]{daten/type_prefix.csv};
-		\addlegendentry{Mit Divergence Buffer}
-	\end{axis}
-\end{tikzpicture}
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/type_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.4cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=equals]{daten/type_prefix.csv}; 
+			\addlegendentry{Naiv};
+			\addplot table [x expr=\coordindex, y=buffer]{daten/type_prefix.csv};
+			\addlegendentry{Mit Lane Refill}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeit für Präfixtest mit verschiedener Verteilung beim Type-Benchmark}
+\label{fig:type_prefix}
+\end{figure}
 
-\begin{tikzpicture}
-	\begin{axis}[
-		ybar,		% Säulendiagramm
-		xlabel={Selektivität},	% Achsenbeschriftung
-		xtick=data,
-		xticklabels from table={daten/dblp_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
-		width=\textwidth,	% Diagrammbreite
-		bar width=0.4cm,	% Breite der Säulen
-		ylabel={Laufzeit},	% Achsenbeschritung
-		ymin=0,		% Säulen stehen auf der X-Achse
-		legend pos=north west,		% Legende am oberen linken Rand positionieren
-		legend style={legend cell align=left} % Text linksbündig anordnen
-		]
-		\addplot table [x expr=\coordindex, y=equals]{daten/dblp_prefix.csv}; 
-		\addlegendentry{Naiv};
-		\addplot table [x expr=\coordindex, y=buffer]{daten/dblp_prefix.csv};
-		\addlegendentry{Mit Divergence Buffer}
-	\end{axis}
-\end{tikzpicture}
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/dblp_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.4cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=equals]{daten/dblp_prefix.csv}; 
+			\addlegendentry{Naiv};
+			\addplot table [x expr=\coordindex, y=buffer]{daten/dblp_prefix.csv};
+			\addlegendentry{Mit Lane Refill}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeit für Präfixtest mit verschiedener Verteilung beim DBLP-Benchmark}
+\label{fig:dblp_prefix}
+\end{figure}
 
 \section{Diskussion der Ergebnisse}
