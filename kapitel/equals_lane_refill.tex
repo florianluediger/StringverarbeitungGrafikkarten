@@ -308,6 +308,7 @@ Alle verbleibenden, aktiven Lanes speichern daraufhin die Position ihres vorher 
 Schließlich wird noch die Anzahl der Elemente im Puffer erhöht und der Algorithmus kann anschließend wie gehabt verfahren.
 
 \section{Reduzierung des Overheads}
+\label{sec:unroll}
 
 Ein Nachteil dieses Verfahrens liegt darin, dass durch das Verwalten des Puffers ein erhöhter Overhead entsteht, der die bessere Performanz durch eine gute Auslastung der GPU überschatten könnte.
 Um diesen Overhead zu verringern, könnte es sinnvoll sein in größerem Zeitabstand die Auslastung zu überprüfen und entsprechend Lanes neu zu befüllen.

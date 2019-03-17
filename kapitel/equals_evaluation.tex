@@ -1,8 +1,35 @@
 \chapter{Evaluation des einfachen String-Vergleichs}
 
+In Kapitel \ref{sec:equals_lane_refill} wurde eine Technik vorgestellt, von der zu erwarten ist, dass sie die Laufzeit des einfachen String-Vergleichs verbessert, indem die Ressourcen der GPU besser genutzt werden und somit eine erhöhte Auslastung erreicht wird.
+Da diese Technik allerdings einen gewissen Overhead mit sich bringt, bleibt es noch zu untersuchen, ob diese Technik tatsächlich eine bessere Laufzeit erzielt, oder ob der Mehraufwand so groß ist, dass die erreichten Vorteile von diesem überschattet werden.
+In diesem Kapitel wird diese Untersuchung anhand realer Arbeitslasten durchgeführt und außerdem überprüft, ob die in Kapitel \ref{sec:unroll} vorgestellte Reduzierung des Overheads eine weitere Leistungssteigerung mit sich bringt.
+
 \section{Testumgebung}
 
+Für die Durchführung der Leistungsmessungen wird der Algorithmus so angepasst, dass dieser lediglich die Anzahl der passenden Zeichenketten zählt und diese am Ende ausgibt.
+Die Testumgebung entspricht also einer Selektion auf einer Spalte einer Relation und dem anschließenden Zählen der Ergebnisse.
+Dieses Vorgehen hat den Vorteil, dass das Zählen der Ergebnisse nicht viel Rechenaufwand verursacht und somit das Ergebnis möglichst wenig verfälscht wird.
+Trotzdem bleibt es aber möglich aufgrund der Ausgabe des Algorithmus beurteilen zu können, ob der Test korrekt durchgeführt wurde.
+
+Sämtliche Tests wurden auf einem Computer durchgeführt, welcher eien NVIDIA GTX 950 verbaut hat und als Betriebssystem Ubuntu 18.04 verwendet.
+
 \section{Verwendete Workloads und deren Merkmale}
+
+In analytischen Anwendungsfällen kommen häufig selektive Filter vor \cite{Boncz2013}, weshalb diese ebenfalls für diese Untersuchungen verwendet werden.
+Außerdem ist zu erwarten, dass diese besonders stark vom Lane-Refill profitieren werden, da bei einer kleinen Menge von Ergebnissen oftmals eine starke Unterauslastung auftritt.
+
+Der erste verwendete Workload, welcher im Folgenden \emph{Type} genannt wird, wurde aus dem TPC-H-Benchmark entnommen.\footnote{\url{http://www.tpc.org/tpch/}}.
+Hier wird eine Selektion über die Type-Spalte durchgeführt, welche Zeichenketten der Länge 16-25 enthält.
+Diese bestehen aus den Zeichen \emph{A-Z} und dem Leerzeichen.
+Für die Untersuchung wurde ein Datensatz mit 90.000.000 Tupeln generiert.
+
+Ein weiterer Workload wurde aus dem Datensatz von DBLP erstellt, welcher die Titel vieler Veröffentlichungen im Informatik-Umfeld enthält.
+Dazu wurden doppelte Titel entfernt und die übrigen Strings so angepasst, dass diese nur noch Kleinbuchstaben enthalten.
+Die durchschnittliche Länge der Zeichenketten in diesem Datensatz beträgt 76 Zeichen und es wurde ein Präfix untersucht, welcher 31 Zeichen beinhaltet.
+Der generierte Datensatz enthält schließlich 21.513.695 Tupel.
+
+Um die unterschiedlichen Selektivitäten für die folgenden Tests zu erreichen wurde ein neuer String entsprechend zufällig verteilt in den Datensatz eingebracht.
+Die gewünschte Datengröße wurde schließlich erreicht, indem der so generierte Datensatz einige male vervielfacht wurde.
 
 \section{Vorstellung der Messergebnisse}
 
