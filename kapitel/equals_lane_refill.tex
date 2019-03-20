@@ -107,6 +107,10 @@ Es ist zu erkennen, dass aktive Tupel in einem schlecht ausgelasteten Warp im Pu
 Im Anschluss fließen neue Tupel über den Weg der Pipeline wieder in den Warp ein, wodurch dieser wieder vollständig ausgelastet ist.
 Sobald erneut eine Unterauslastung auftritt, werden die zwischengespeicherten Elemente aus dem Puffer in die inaktiven Lanes geladen und der Warp ist wieder komplett ausgelastet.
 
+Die hier vorgestellte Technik ermöglicht es, die Unterauslastung innerhalb der String-Vergleichs-Operation zu verringern, allerdings entsteht dadurch gegebenenfalls eine starke Unterauslastung bei den Folgeoperationen in der Pipeline.
+Dieser Effekt entsteht, da die Überprüfung der Zeichenketten zu sehr unterschiedlichen Zeitpunkten abgeschlossen sein kann und somit immer mal wieder einige Tupel bereit, sind die Folgeoperationen der Pipeline auszuführen, während viele andere Tupel sich noch innerhalb des String-Vergleichs befinden.
+Um dieses Problem zu lösen, kann beispielsweise nach dem String-Vergleich eine weitere Puffer-Operation eingeführt werden, welche sicherstellt, dass genug Zeichenketten fertig überprüft wurden, sodass die nachfolgenden Operationen mit einer ausreichenden Auslastung ausgeführt werden.
+
 \section{Struktur des optimierten String-Vergleichs im Kernel}
 
 Um den einfachen String-Vergleich durch Lane Refill zu optimieren, muss die Struktur des Operators im Kernel etwas angepasst werden, was in Listing \ref{equals_lane_refill_code} dargestellt wird.
