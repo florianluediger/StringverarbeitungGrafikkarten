@@ -85,7 +85,7 @@ Nach der Durchführung der gesamten Pipeline von Operationen für das untersucht
 Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable in Zeile 20 auf \texttt{false} gesetzt wird.
 Wird anschließend mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
 
-\begin{lstlisting}[language=C++,
+\begin{lstlisting}[language=MyC++,
 caption=Generierter Kernel für den Beispielplan,
 label=pipelining_example_code,
 linebackgroundcolor={%
@@ -124,7 +124,7 @@ void joinProbePipeline(
 	while(!flush_pipeline) {
 	
 		// element index must not be higher than number of tuples
-		active = loop_var < TUPLE_COUNT;
+		active = loop_var < TUPLE_COUNT_ORDERS;
 		
 		// break computation when every line is finished and therefore inactive
 		flush_pipeline = !__ballot_sync(ALL_LANES, active);

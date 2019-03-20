@@ -95,7 +95,7 @@ Innerhalb eines Kernels kann der Thread auf seinen Threadindex (\texttt{threadId
 Der globale Index eines Threads berechnet sich somit aus \texttt{blockIdx.x * blockDim.x + threadIdx.x} und die Sprungweite ist definiert durch \texttt{blockDim.x * gridDim.x}.
 Die dafür zur Verfügung gestellten Variablen und eine beispielhafte Iteration über zwei Datensätze sind in Listing \ref{cuda_example} dargestellt.
 
-\begin{lstlisting}[language=C++,
+\begin{lstlisting}[language=MyC++,
 caption=Beispielhafter CUDA-Kernel zum Iterieren über zwei Datensätze \cite{Harris2017},
 label=cuda_example]
 __global__

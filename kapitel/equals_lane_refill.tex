@@ -125,7 +125,7 @@ Schließlich wird die Pipeline mit frischen Tupeln wieder von vorne gestartet.
 
 \newpage
 
-\begin{lstlisting}[language=C++,
+\begin{lstlisting}[language=MyC++,
 caption=Struktur der String-Selektion mit Lane Refill,
 label=equals_lane_refill_code]
 while(!flush_pipeline) {
@@ -183,7 +183,7 @@ In einem Feld wird die Position des untersuchten Strings gespeichert und in dem 
 Da der Shared Memory immer auf dem Level eines ganzen Blocks gültig ist, muss dieser so viele Elemente fassen können wie es Threads pro Block gibt.
 Eine ausführliche Version der Umsetzung befindet sich in Anhang \ref{apx:equals_lane_refill}, hier sollen aber dennoch die Techniken zum Zwischenspeichern und Laden von Elementen kurz beschrieben werden.
 
-\begin{lstlisting}[language=C++,
+\begin{lstlisting}[language=MyC++,
 caption=Befüllen inaktiver Lanes mit Elementen aus dem Puffer,
 label=refill_code]
 if (numactive < THRESHOLD) {
@@ -285,7 +285,7 @@ Da der Puffer grundsätzlich von rechts abgearbeitet wird, muss noch der Wert \t
 
 Ist der Index berechnet, können der String und der Suchindex innerhalb des Strings aus dem Puffer geladen werden und die Lane wieder aktiv geschaltet werden.
 
-\begin{lstlisting}[language=C++,
+\begin{lstlisting}[language=MyC++,
 caption={Auslagern übriger, aktiver Lanes in den Puffer},
 label=flush_code]
 if (numactive > 0) {
@@ -316,7 +316,7 @@ Um dies zu erreichen, muss wie in Listing \ref{unroll_code} lediglich der Zeiche
 Dabei muss natürlich nach jeder Überprüfung auch geschaut werden, ob der String bereits fertig durchlaufen wurde, damit gegebenenfalls die Folgeoperationen in der Pipeline ausgeführt werden können.
 Durch das Schlüsselwort \texttt{\#pragma unroll}, ersetzt der Präprozessor die einfache Schleife durch Duplikate des Codes, wodurch eine weitere, kleine Leistungssteigerung erreicht wird.
 
-\begin{lstlisting}[language=C++,
+\begin{lstlisting}[language=MyC++,
 caption={Reduzierung des Overheads des Verfahrens},
 label=unroll_code]
 #pragma unroll
