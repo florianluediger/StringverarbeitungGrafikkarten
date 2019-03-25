@@ -219,46 +219,46 @@ Gibt es weniger inaktive Lanes vor der betrachteten als Elemente im Puffer, darf
 	\begin{tikzpicture}
 	% buffer
 	\node (b1) [draw, thick, minimum width=6cm, minimum height=1.5cm] {};
-	\node (b2) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b1] {};
-	\node (b3) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b2] {};
-	\node (b4) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b3] {};
-	\node (b5) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b4] {};
-	\node (b6) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = 0cm of b5] {};
-	\node (b7) [draw, thick, minimum width=1.75cm, minimum height=1.5cm, right = 0cm of b6] {};
+	\node (b2) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = -\pgflinewidth of b1] {};
+	\node (b3) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = -\pgflinewidth of b2] {};
+	\node (b4) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = -\pgflinewidth of b3] {};
+	\node (b5) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = -\pgflinewidth of b4] {};
+	\node (b6) [draw, thick, minimum width=0.75cm, minimum height=1.5cm, right = -\pgflinewidth of b5] {};
+	\node (b7) [draw, thick, minimum width=1.75cm, minimum height=1.5cm, right = -\pgflinewidth of b6] {};
 	
 	% warp
 	\node (w1) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, below right = 1.5cm and -0.1cm of b1.south] {};
-	\node (w2) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w1, fill=black!30] {};
-	\node (w3) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w2, fill=black!30] {};
-	\node (w4) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w3] {};
-	\node (w5) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w4] {};
-	\node (w6) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w5, fill=black!30] {};
-	\node (w7) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w6] {};
-	\node (w8) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = 0cm of w7] {};
+	\node (w2) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w1, fill=black!30] {};
+	\node (w3) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w2, fill=black!30] {};
+	\node (w4) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w3] {};
+	\node (w5) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w4] {};
+	\node (w6) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w5, fill=black!30] {};
+	\node (w7) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w6] {};
+	\node (w8) [draw, thick, minimum width=0.75cm, minimum height=0.75cm, right = -\pgflinewidth of w7] {};
 	
 	% arrows to warp
 	\coordinate [below = 0.3cm of b4.south] (arr11);
 	\coordinate [above = 0.6cm of w2.north] (arr12);
-	\draw [->, thick, dashed, rounded corners=0.4cm] (b4.south) -- (arr11) -- (arr12) -- (w2.north);
+	\draw [->, thick, dashed, rounded corners=0.3cm] (b4.south) -- (arr11) -- (arr12) -- (w2.north);
 	
 	\coordinate [below = 0.4cm of b5.south] (arr21);
 	\coordinate [above = 0.5cm of w3.north] (arr22);
-	\draw [->, thick, dashed, rounded corners=0.4cm] (b5.south) -- (arr21) -- (arr22) -- (w3.north);
+	\draw [->, thick, dashed, rounded corners=0.3cm] (b5.south) -- (arr21) -- (arr22) -- (w3.north);
 	
 	\coordinate [below = 0.5cm of b6.south] (arr31);
 	\coordinate [above = 0.4cm of w6.north] (arr32);
 	\draw [->, thick, rounded corners=0.3cm] (b6.south) -- (arr31) -- (arr32) -- (w6.north);
 	
 	% offset ticks
-	\coordinate [above = 0.5cm of b1.north west] (tick1);
-	\coordinate [above = 0.5cm of b2.north west] (tick2);
-	\coordinate [above = 0.5cm of b4.north west] (tick3);
-	\coordinate [above = 0.5cm of b6.north west] (tick4);
+	\coordinate [above left = 0.5cm and -\pgflinewidth of b1.north west] (tick1);
+	\coordinate [above left = 0.5cm and -\pgflinewidth of b2.north west] (tick2);
+	\coordinate [above left = 0.5cm and -\pgflinewidth of b4.north west] (tick3);
+	\coordinate [above left = 0.5cm and -\pgflinewidth of b6.north west] (tick4);
 	
-	\draw [thick] (b1.north west) -- (tick1);
-	\draw [thick] (b2.north west) -- (tick2);
-	\draw [thick] (b4.north west) -- (tick3);
-	\draw [thick] (b6.north west) -- (tick4);
+	\draw [thick] ($ (b1.north west) + (\pgflinewidth / 2,0) $) -- (tick1);
+	\draw [thick] ($ (b2.north west) + (\pgflinewidth / 2,0) $) -- (tick2);
+	\draw [thick] ($ (b4.north west) + (\pgflinewidth / 2,0) $) -- (tick3);
+	\draw [thick] ($ (b6.north west) + (\pgflinewidth / 2,0) $) -- (tick4);
 	
 	% offset arrows
 	\coordinate [below = 0.25cm of tick1] (arrow1);
@@ -271,9 +271,9 @@ Gibt es weniger inaktive Lanes vor der betrachteten als Elemente im Puffer, darf
 	\draw [->, thick] (arrow3) -- (arrow4);
 	
 	% labels
-	\node [above = 0.3cm of b1.north] {\textsf{bufferbase}};
-	\node [above = 0.3cm of b3.north west, align=center] {\textsf{num}\\\textsf{remaining}};
-	\node [above = 0.3cm of b5.north west, align=center] {\textsf{previous}\\\textsf{inactive}};
+	\node [above = 0.4cm of b1.north] {\textsf{bufferbase}};
+	\node [above = 0.4cm of b3.north west, align=center] {\textsf{num}\\\textsf{remaining}};
+	\node [above = 0.4cm of b5.north west, align=center] {\textsf{previous}\\\textsf{inactive}\vphantom{My}};
 	
 	\node [right = 0.3cm of b7] {\textsf{buffer}};
 	\node [right = 0.3cm of w8] {\textsf{warp}};
