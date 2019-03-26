@@ -28,6 +28,7 @@ Jeder dieser Blöcke besitzt einen eigenen Scheduler und einige Unterstützungse
 Bei sechs Streaming Multiprocessors mit jeweils vier Blöcken und 32 Recheneinheiten pro Block besitzt die GTX950 also 768 Kerne, welche über eine Programmierschnittstelle angesprochen werden können.
 
 \section{Scheduling auf GPU}
+\label{sec:cuda_scheduling}
 
 Um die hohe Anzahl von Kernen innerhalb einer GPU effizient mit Arbeit versorgen zu können, wird schnell klar, dass ein individuelles Scheduling für die einzelnen Recheneinheiten durch den großen Overhead unpraktikabel wäre.
 Aus diesem Grund werden die Threads eines Programms in sogenannte \emph{Warps} zusammengefasst, was damit die kleinste Einheit für das Scheduling bildet.
