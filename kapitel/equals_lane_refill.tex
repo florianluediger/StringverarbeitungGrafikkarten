@@ -1,7 +1,7 @@
 \chapter{Verbesserung des einfachen String-Vergleichs}
 \label{sec:equals_lane_refill}
 
-Zur Verbesserung der Auslastung der GPU bei der Berechnung des einfachen String-Vergleichs, wird ein Verfahren vorgestellt, das auch im Kontext der kompilierten Anfragepipelines eine optimierte Laufzeit verspricht.
+Zur Verbesserung der Auslastung der GPU bei der Berechnung des einfachen String-Vergleichs, wird ein Verfahren vorgestellt, das auch in kompilierten Anfragepipelines eine optimierte Laufzeit verspricht.
 Dieses stellt durch Verwendung eines Puffers sicher, dass zu jeder Zeit während der Laufzeit die Auslastung eines Warps über einem bestimmten Grenzwert liegt.
 Das Prinzip wurde im Kontext von kompilierten Anfragepipelines mit SIMD als \emph{consume everything} vorgestellt \cite{Lang2018} und im Kontext dieser Arbeit auf Grafikkarten angewendet.
 Im Folgenden wird das Verfahren als \emph{Lane Refill} bezeichnet, da es die inaktiven Lanes in einem Warp dynamisch wieder auffüllt.
@@ -9,7 +9,7 @@ Im Folgenden wird das Verfahren als \emph{Lane Refill} bezeichnet, da es die ina
 \section{Funktionsweise des String-Vergleichs mit Lane Refill}
 
 Zur Verbesserung des einfachen String-Vergleichs, kann das naive Verfahren durch das Lane Refill erweitert werden, indem ein Puffer eingeführt wird, in dem teilweise abgearbeitete Tupel zwischengespeichert werden können.
-Bei der ursprünglichen Technik gibt es drei Stellen, an denen Lanes innerhalb eines Warps inaktiv werden können.
+Bei der naiven Umsetzung gibt es drei Stellen, an denen Lanes innerhalb eines Warps inaktiv werden können.
 Zum einen passiert dies, wenn beim Längenvergleich zu Beginn eine unpassende Länge festgestellt wird und zum anderen wenn beim Vergleich von zwei Zeichen ein Unterschied festgestellt wird.
 Schließlich werden Lanes ebenfalls inaktiv, wenn diese ihren Vergleich abgeschlossen haben und einen passenden String gefunden haben.
 Jeweils nach diesen Ereignissen soll nun überprüft werden, ob die Auslastung des Warps noch ausreichend ist, um den Grenzwert zu erreichen.
@@ -105,10 +105,10 @@ Wurden zuvor zu wenige Elemente gepuffert, sodass der Grenzwert nicht erreicht w
 In Abbildung \ref{fig:divergence_buffer} ist die Funktionsweise der vorgestellten Technik dargestellt.
 Es ist zu erkennen, dass aktive Tupel in einem schlecht ausgelasteten Warp im Puffer zwischengespeichert werden, was hier als \emph{flush} bezeichnet wird.
 Im Anschluss fließen neue Tupel über den Weg der Pipeline wieder in den Warp ein, wodurch dieser wieder vollständig ausgelastet ist.
-Sobald erneut eine Unterauslastung auftritt, werden die zwischengespeicherten Elemente aus dem Puffer in die inaktiven Lanes geladen und der Warp ist wieder komplett ausgelastet.
+Sobald erneut eine Unterauslastung auftritt, werden die zwischengespeicherten Elemente aus dem Puffer in die inaktiven Lanes geladen und der Warp ist wieder effizient ausgelastet.
 
 Die hier vorgestellte Technik ermöglicht es, die Unterauslastung innerhalb der String-Vergleichs-Operation zu verringern, allerdings entsteht dadurch gegebenenfalls eine starke Unterauslastung bei den Folgeoperationen in der Pipeline.
-Dieser Effekt entsteht, da die Überprüfung der Zeichenketten zu sehr unterschiedlichen Zeitpunkten abgeschlossen sein kann und somit immer mal wieder einige Tupel bereit, sind die Folgeoperationen der Pipeline auszuführen, während viele andere Tupel sich noch innerhalb des String-Vergleichs befinden.
+Dieser Effekt entsteht, da die Überprüfung der Zeichenketten zu sehr unterschiedlichen Zeitpunkten abgeschlossen sein kann und somit immer mal wieder einige Tupel bereit sind, die Folgeoperationen der Pipeline auszuführen, während viele andere Tupel sich noch innerhalb des String-Vergleichs befinden.
 Um dieses Problem zu lösen, kann beispielsweise nach dem String-Vergleich eine weitere Puffer-Operation eingeführt werden, welche sicherstellt, dass genug Zeichenketten fertig überprüft wurden, sodass die nachfolgenden Operationen mit einer ausreichenden Auslastung ausgeführt werden.
 
 \section{Struktur des optimierten String-Vergleichs im Kernel}
@@ -118,13 +118,13 @@ Die äußere Schleife ist bereits aus der Grundstruktur einer Pipeline, wie sie 
 Innerhalb der Schleife werden wie bei der naiven Implementierung zunächst die Operatoren ausgeführt, die in der Pipeline vor dem String-Vergleich stehen und es wird die Länge der Zeichenkette untersucht und diese gegebenenfalls verworfen.
 
 Um im nächsten Schritt beurteilen zu können, ob eine ausreichende Auslastung besteht, wird zunächst mithilfe einer Synchronisierungsoperation überprüft, wie viele Lanes im Warp aktiv sind.
-Sind im Puffer und im Warp im Summe noch ausreichend aktive Elemente vorhanden, um den vorher definierten Grenzwert zu überschreiten, so kann weiter mit dem String-Vergleich fortgefahren werden.
-Gegebenenfalls werden zuvor allerdings noch die leeren Lanes mit Tupeln aus dem Puffer wieder aufgefüllt, sollten die aktiven Lanes alleine nicht ausreichen, um den Grenzwert zu erreichen.
+Sind im Puffer und im Warp in Summe noch ausreichend aktive Elemente vorhanden, um den vorher definierten Grenzwert zu überschreiten, so kann weiter mit dem String-Vergleich fortgefahren werden.
+Sollten die aktiven Lanes alleine nicht ausreichen, um den Grenzwert zu erreichen, werden gegebenenfalls zuvor noch die leeren Lanes mit Tupeln aus dem Puffer wieder aufgefüllt.
 Der eigentliche Vergleich zweier Zeichen funktioniert hier wieder genau wie bei der naiven Implementierung.
 Nach dem Vergleich wird geprüft, ob der String vollständig durchlaufen wurde und entsprechend die folgenden Operationen in der Pipeline ausgeführt.
 An dieser Stelle fällt auf, dass im Gegensatz zu der naiven Implementierung eine Verschachtelung entsteht, da die Folgeoperationen innerhalb der \texttt{while}-Schleife des String-Vergleichs-Operators ausgeführt werden.
 
-Ist nach erneuter Zählung der aktiven Lanes die Schleifenbedinugng nicht mehr erfüllt, da zu wenige Tupel existieren, um eine ausreichende Auslastung zu gewährleisten, werden die Tupel aus den restlichen, aktiven Lanes in den Puffer geschrieben.
+Ist nach erneuter Zählung der aktiven Lanes die Schleifenbedingung nicht mehr erfüllt, da zu wenige Tupel existieren, um eine ausreichende Auslastung zu gewährleisten, werden die Tupel aus den restlichen, aktiven Lanes in den Puffer geschrieben.
 Schließlich wird die Pipeline mit frischen Tupeln wieder von vorne gestartet.
 
 \newpage
@@ -183,7 +183,7 @@ while(!flush_pipeline) {
 
 Der Puffer wird mithilfe der CUDA-Programmierschnittstelle als Shared Memory umgesetzt, um eine effiziente Kommunikation zwischen den Lanes zu ermöglichen.
 Für den einfachen String-Vergleich werden dazu zwei Speicherbereiche benötigt, welche mit dem Schlüsselwort \texttt{\_\_shared\_\_} initialisiert werden.
-In einem Feld wird die Position des untersuchten Strings gespeichert und in dem anderen Feld wird der Index des Zeichens innerhalb des Strings gespeichert, das als nächstes verglichen werden muss.
+In einem Feld wird die Position des untersuchten Strings gespeichert (\texttt{current\_divergence\_buffer}) und in dem anderen Feld wird der Index des Zeichens innerhalb des Strings gespeichert, das als nächstes verglichen werden muss (\texttt{search\_id\_divergence\_buffer}).
 Da der Shared Memory immer auf dem Level eines ganzen Blocks gültig ist, muss dieser so viele Elemente fassen können wie es Threads pro Block gibt.
 Eine ausführliche Version der Umsetzung befindet sich in Anhang \ref{apx:equals_lane_refill}, hier sollen aber dennoch die Techniken zum Zwischenspeichern und Laden von Elementen kurz beschrieben werden.
 
@@ -212,7 +212,7 @@ Die inaktiven Lanes müssen zunächst beurteilen, ob diese berechtigt sind, sich
 Befinden sich beispielsweise zwei Elemente im Puffer, es gibt aber drei inaktive Lanes, dann erhalten die zwei Lanes mit dem niedrigeren Index ein neues Tupel und die Lane mit höherem Index bleibt weiter inaktiv.
 Als erstes muss also bestimmt werden, wie viele Lanes vor der betrachteten Lane inaktiv sind.
 Der Wert \texttt{prefixlanes} ist dabei eine Bitmaske mit einem Bit für jede Lane im Warp, bei der für alle vor der aktuellen Lane liegenden Lanes ein Bit gesetzt wurde.
-Gibt es weniger inaktive Lanes vor der betrachteten als Elemente im Puffer, darf sich diese Lane ein neues Tupel aus dem Puffer holen.
+Gibt es weniger inaktive vor der betrachteten Lane als Elemente im Puffer, darf sich diese Lane ein neues Tupel aus dem Puffer holen.
 
 \begin{figure}[ht]
 	\centering

@@ -11,11 +11,11 @@ Aus den Parametern setzt sich die \emph{Grid-Konfiguration} zusammen, welche dur
 \begin{figure}[ht]
 	\includegraphics[]{bilder/parameter025.pdf}
 	\caption{Laufzeit des naiven String-Vergleichsalgorithmus in ms für den Type-Datensatz mit einer Selektivität von 0.25\% unter Verwendung unterschiedlicher Grid-Konfigurationen}
-	\label{gpu_architecture}
+	\label{parameter025}
 \end{figure}
 
 Um dieses Vorgehen zu veranschaulichen, soll anhand eines Beispiels gezeigt werden, wie eine möglichst optimale Grid-Konfiguration gefunden werden kann und wie unterschiedliche Konfigurationen einen Einfluss auf die Laufzeit nehmen.
-Abbildung \ref{gpu_architecture} zeigt dazu die Laufzeit für den String-Vergleichsalgorithmus in Millisekunden, welcher für unterschiedliche Grid-Konfigurationen auf dem in Kapitel \ref{sec:equals_evaluation_workloads} vorgestellten Type-Datensatz mit einer Selektivität von 0.25\% ausgeführt wurde.
+Abbildung \ref{parameter025} zeigt dazu die Laufzeit für den String-Vergleichsalgorithmus in Millisekunden, welcher für unterschiedliche Grid-Konfigurationen auf dem in Kapitel \ref{sec:equals_evaluation_workloads} vorgestellten Type-Datensatz mit einer Selektivität von 0.25\% ausgeführt wurde.
 Besonders hohe Laufzeiten sind dabei in rot und besonders niedrige Laufzeiten in grün eingefärbt.
 
 Es fällt auf, dass eine niedrige Block Size in Kombination mit einer niedrigen Grid Size zu einer hohen Laufzeit führt.
@@ -31,7 +31,7 @@ Wie der Anstieg der Laufzeiten bei einer Block Size von über 512 zu begründen 
 
 Für die Verwendung des Algorithmus sollte im Allgemeinen eine Grid-Konfiguration aus dem Bereich gewählt werden, welcher eine durchweg ordentliche Performanz erzielt.
 Dadurch ist die Wahrscheinlichkeit hoch, dass eine Konfiguration gewählt wird, mit der eine Laufzeit erreicht wird, welche bis auf eine kleinere Abweichung dem Optimum entspricht.
-Die Position des Bereichs ändert sich für unterschiedliche Selektivitäten des Datensatzes nur geringfügig, wie in zahlreichen Tests untersucht wurde und beispielhaft in Anhang \ref{apx:parameter64} für eine Selektivität von 64\% analog zu Abbildung \ref{gpu_architecture} dargestellt wird.
+Die Position des Bereichs ändert sich für unterschiedliche Selektivitäten des Datensatzes nur geringfügig, wie in zahlreichen Tests untersucht wurde und beispielhaft in Anhang \ref{apx:parameter64} für eine Selektivität von 64\% analog zu Abbildung \ref{parameter025} dargestellt wird.
 Aus diesem Grund kann die Grid-Konfiguration schon vor der Ausführung bestimmt werden und eine nah am Maximum liegende Leistungsfähigkeit erzielt werden.
 Bei den Leistungsmessungen in den folgenden Kapiteln sollte sich allerdings nicht darauf verlassen werden, dass durch diese Heuristik ein nahezu optimaler Wert gefunden wird, weshalb für die Tests jeweils das Optimum aus einer Auswahl von Grid-Konfigurationen bestimmt wird.
 Dazu werden alle Konfigurationen mit einer Grid Size von \{1.000, 2.000, 3.000, 4.000, 6.000, 8.000, 10.000, 20.000, 50.000, 100.000, 150.000, 200.000\} und einer Block Size von \{32, 64, 96, 128, 160, 192, 224, 256, 384, 512, 640, 768\} überprüft und das Optimum der Messungen für die Auswertung der aufgestellten Statistiken gewählt.

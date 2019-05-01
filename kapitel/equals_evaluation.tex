@@ -9,7 +9,7 @@ In diesem Kapitel wird diese Untersuchung anhand realer Arbeitslasten durchgefü
 
 Für die Durchführung der Leistungsmessungen wird der Algorithmus so angepasst, dass dieser lediglich die Anzahl der passenden Zeichenketten zählt und diese am Ende ausgibt.
 Die Testumgebung entspricht also einer Selektion auf einer Spalte einer Relation und dem anschließenden Zählen der Ergebnisse.
-Dieses Vorgehen hat den Vorteil, dass das Zählen der Ergebnisse nicht viel Rechenaufwand verursacht und somit das Ergebnis möglichst wenig verfälscht wird.
+Dieses Vorgehen hat den Vorteil, dass das Zählen der Ergebnisse nicht viel Rechenaufwand verursacht und somit die Leistungsmessungen möglichst wenig verfälscht wird.
 Trotzdem bleibt es aber möglich aufgrund der Ausgabe des Algorithmus beurteilen zu können, ob der Test korrekt durchgeführt wurde.
 
 Sämtliche Tests wurden auf einem Computer durchgeführt, welcher eien NVIDIA GTX 950 verbaut hat und als Betriebssystem Ubuntu 18.04 verwendet.
@@ -20,7 +20,7 @@ Sämtliche Tests wurden auf einem Computer durchgeführt, welcher eien NVIDIA GT
 In analytischen Anwendungsfällen kommen häufig selektive Filter vor \cite{Boncz2013}, weshalb diese ebenfalls für diese Untersuchungen verwendet werden.
 Außerdem ist zu erwarten, dass diese besonders stark vom Lane Refill profitieren werden, da bei einer kleinen Menge von Ergebnissen oftmals eine starke Unterauslastung auftritt.
 
-Der erste verwendete Workload, welcher im Folgenden \emph{Type} genannt wird, wurde aus dem TPC-H-Benchmark entnommen.\footnote{\url{http://www.tpc.org/tpch/}}.
+Der erste verwendete Workload, welcher im Folgenden \emph{Type} genannt wird, wurde aus dem TPC-H-Benchmark entnommen.\footnote{\url{http://www.tpc.org/tpch/}}
 Hier wird eine Selektion über die Type-Spalte durchgeführt, welche Zeichenketten der Länge 16-25 enthält.
 Diese bestehen aus den Zeichen \emph{A-Z} und dem Leerzeichen.
 Für die Untersuchung wurde ein Datensatz mit 90.000.000 Tupeln generiert.
@@ -81,7 +81,7 @@ Der Algorithmus, welcher das Lane Refill implementiert ist zwischen 43\% und 4\%
 Dabei entsteht der größte Vorteil bei einem geringen Anteil von passenden Elementen, welcher geringer wird, sobald der Datensatz eine höhere Anzahl von Matches enthält.
 Bis zu einem Anteil von 8\% beträgt die Verbesserung der Laufzeit, die durch das Lane Refill-Verfahren erreicht wurde mehr als 50\%.
 Es ist außerdem zu erkennen, dass die Laufzeit der beiden Varianten, welche die Reduzierung des Overheads erzielen sollten, eine nahezu identische Laufzeit erreichen, wie die erste Version, welche Lane Refill verwendet.
-Schließlich entsteht bei der Messung einen Ausreißer bei einem Anteil passender Matches von 2\%, welcher sich durch besonders geringe Laufzeiten für alle Algorithmen auszeichnet.
+Schließlich entsteht bei der Messung ein Ausreißer bei einem Anteil passender Matches von 2\%, welcher sich durch besonders geringe Laufzeiten für alle Algorithmen auszeichnet.
 
 \subsection{Präfixtest mit dem Type-Datensatz}
 
