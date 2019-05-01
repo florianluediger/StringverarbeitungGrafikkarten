@@ -1,14 +1,14 @@
 \chapter{Verbesserung des einfachen String-Vergleichs}
 \label{sec:equals_lane_refill}
 
-Zur Verbesserung der Auslastung der GPU bei der Berechnung des einfachen String-Vergleichs, wird ein Verfahren vorgestellt, das auch in kompilierten Anfragepipelines eine optimierte Laufzeit verspricht.
+Zur Verbesserung der Auslastung der GPU bei der Berechnung des einfachen String-Vergleichs wird ein Verfahren vorgestellt, das auch in kompilierten Anfragepipelines eine optimierte Laufzeit verspricht.
 Dieses stellt durch Verwendung eines Puffers sicher, dass zu jeder Zeit während der Laufzeit die Auslastung eines Warps über einem bestimmten Grenzwert liegt.
 Das Prinzip wurde im Kontext von kompilierten Anfragepipelines mit SIMD als \emph{consume everything} vorgestellt \cite{Lang2018} und im Kontext dieser Arbeit auf Grafikkarten angewendet.
 Im Folgenden wird das Verfahren als \emph{Lane Refill} bezeichnet, da es die inaktiven Lanes in einem Warp dynamisch wieder auffüllt.
 
 \section{Funktionsweise des String-Vergleichs mit Lane Refill}
 
-Zur Verbesserung des einfachen String-Vergleichs, kann das naive Verfahren durch das Lane Refill erweitert werden, indem ein Puffer eingeführt wird, in dem teilweise abgearbeitete Tupel zwischengespeichert werden können.
+Zur Verbesserung des einfachen String-Vergleichs kann das naive Verfahren durch das Lane Refill erweitert werden, indem ein Puffer eingeführt wird, in dem teilweise abgearbeitete Tupel zwischengespeichert werden können.
 Bei der naiven Umsetzung gibt es drei Stellen, an denen Lanes innerhalb eines Warps inaktiv werden können.
 Zum einen passiert dies, wenn beim Längenvergleich zu Beginn eine unpassende Länge festgestellt wird und zum anderen wenn beim Vergleich von zwei Zeichen ein Unterschied festgestellt wird.
 Schließlich werden Lanes ebenfalls inaktiv, wenn diese ihren Vergleich abgeschlossen haben und einen passenden String gefunden haben.
@@ -344,3 +344,8 @@ if (search_id == search_length) {
 	active = false;
 }
 \end{lstlisting}
+
+\newpage
+
+Die in diesem Kapitel vorgestellte Technik zur Verbesserung der Leistungsfähigkeit des einfachen String-Vergleichs liefert einen vielversprechenden Ansatz, um die Ausführung von String-Operationen in Pipelining-Umgebungen auf Grafikkarten effizient zu gestalten, ohne dabei auf Dictionaries zurückgreifen zu müssen.
+Ob dieses Verfahren die gewünschten Leistungsziele erreichen kann, wird in Kapitel \ref{sec:equals_evaluation} anhand einiger praktischer Anwendungsszenarien ermittelt werden.

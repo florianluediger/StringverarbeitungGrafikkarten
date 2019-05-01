@@ -8,7 +8,7 @@ Als Grundlage für die späteren Codebeispiele, wird hier die grundsätzliche Fu
 
 Klassische in-memory Datenbanken wie \emph{MonetDB} arbeiten die Operatoren innerhalb eines Anfrageplans nacheinander ab, was auch \emph{Operator At A Time} genannt wird.
 Dabei wird für den gesamten Datensatz zunächst der erste Operator vollständig ausgeführt, bevor der gesamte Datensatz an den nächsten Operator weiter gegeben wird, bis schließlich der gesamte Anfrageplan abgearbeitet wurde.
-Der Nachteil dieser Strategie, besteht in einer besonders hohen Lese- und Schreiblast für die Zwischenergebnisse der Operatoren, da diese nach jeder Operation im Speicher materialisiert werden müssen.
+Der Nachteil dieser Strategie besteht in einer besonders hohen Lese- und Schreiblast für die Zwischenergebnisse der Operatoren, da diese nach jeder Operation im Speicher materialisiert werden müssen.
 Reicht der begrenzte GPU-Speicher nicht aus, um die Zwischenergebnisse zu speichern, werden während der Berechnung Transfers in den Hauptspeicher des Systems notwendig, um neue Blöcke der Tabelle nachzuladen.
 Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 
@@ -81,7 +81,7 @@ Schließlich wurde vom Query Compiler noch das Zählen der Ergebnisse umgesetzt,
 Dabei wird wieder mithilfe der Synchronisierungsoperation \texttt{\_\_ballot\_sync} die Anzahl der aktiven Lanes gezählt, welche jeweils ein Element des Ergebnisses repräsentieren.
 Diese Anzahl wird daraufhin vom ersten Thread innerhalb des Warps auf das Ergebnis addiert. 
 
-Nach der Durchführung der gesamten Pipeline von Operationen für das untersuchte Tupel, wird der Index erhöht, sodass im nächsten Schleifendurchlauf das nächste Tupel untersucht wird.
+Nach der Durchführung der gesamten Pipeline von Operationen für das untersuchte Tupel wird der Index erhöht, sodass im nächsten Schleifendurchlauf das nächste Tupel untersucht wird.
 Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable in Zeile 20 auf \texttt{false} gesetzt wird.
 Wird anschließend mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
 
@@ -147,3 +147,9 @@ void joinProbePipeline(
 	}
 }
 \end{lstlisting}
+
+Bei dem hier vorgestellten Verfahren der \emph{Tuple At A Time} Verarbeitung wird klar, dass dieses einen großen Vorteil bei der effizienten Nutzung von schnellem Speicher gegenüber der \emph{Operator At A Time} Verarbeitung bietet.
+Zwischenergebnisse müssen nicht mehr materialisiert werden, weshalb Tupel in Registern oder Caches vorgehalten werden können und die Operationen für das explizite Materialisieren entfallen.
+Im Gegensatz zu der \emph{Operator At A Time} Technik lässt sich das Pipelining allerdings nicht so einfach auf eine parallele Verarbeitung mit GPUs übertragen.
+Wird jedem Thread in einem Warp ein Tupel übergeben, kann es passieren, dass bei beispielsweise einer Selektion dieses Tupel aus der Ergebnisrelation heraus fällt, somit im weiteren Verlauf nicht weiter beachtet werden muss und die entsprechende Lane inaktiv wird.
+Dieses Problem wird in Kapitel \ref{sec:unterauslastung_problem} aufgegriffen und in Kapitel \ref{sec:equals_lane_refill} wird ein Lösungsvorschlag dafür vorgestellt.

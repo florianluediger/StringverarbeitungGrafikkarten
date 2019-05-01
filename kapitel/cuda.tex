@@ -44,7 +44,7 @@ Das Finden der richtigen Parameter gestaltet sich als äußerst schwierig, da di
 
 Eine für die Programmierung von GPUs entscheidende Eigenschaft besteht darin, dass die Threads innerhalb eines Warps parallel ausgeführt werden.
 Ähnlich wie bei dem Prinzip \emph{Single Instruction Multiple Data (SIMD)}, führen die Threads in einem Warp die Instruktionen synchron aus, sodass dieses Prinzip auch \emph{Single Instruction Multiple Threads (SIMT)} genannt wird.
-Die Trennung in mehrere Threads, bietet hierbei den Vorteil, dass eigene Register angesprochen werden können, an unterschiedlichen Stellen im Speicher gelesen werden kann und Threads verschiedene Kontrollflüsse verfolgen können.
+Die Trennung in mehrere Threads bietet hierbei den Vorteil, dass eigene Register angesprochen werden können, an unterschiedlichen Stellen im Speicher gelesen werden kann und Threads verschiedene Kontrollflüsse verfolgen können.
 Prozesse laufen außerdem zwar logisch parallel ab, allerdings muss dies nicht notwendigerweise physikalisch auch so sein, sodass in einigen Fällen eine höhere Leistung erzielt werden kann.
 Für die optimale Performanz einzelner Operationen sollte allerdings gewährleistet sein, dass die Threads größtenteils synchron ausgeführt werden.
 
@@ -57,7 +57,7 @@ In dieser Problematik liegt der Grund dafür, dass die Verarbeitung von Strings 
 \section{Synchronisation von Threads}
 \label{sec:synchronisation_von_threads}
 
-Der Compiler und die GPU selbst versuchen innerhalb eines Warps die Anzahl der synchron ausgeführten Operationen zu maximieren, da dadurch eine höhere Leistung erzielt wird. \cite{Nickolls2009}
+Der Compiler und die GPU selbst versuchen innerhalb eines Warps die Anzahl der synchron ausgeführten Operationen zu maximieren, da dadurch eine höhere Leistung erzielt wird \cite{Nickolls2009}.
 Diese Synchronisation kann allerdings auch explizit durch den Entwickler erfolgen, indem er die dafür vorgesehenen Operationen der Entwicklungsschnittstelle verwendet.
 Das Verwenden solcher Operationen führt dazu, dass alle Threads an dieser Stelle aufeinander warten müssen.
 
@@ -66,13 +66,13 @@ Die Instruktionen werden von der Hardware unterstützt, sodass sie typischerweis
 Ein Beispiel für eine solche Operation ist das Auswerten eines Prädikates für alle Threads und anschließend das Erstellen einer Bitmaske, welche das Ergebnis der Auswertung für alle Threads enthält.
 Ein weiteres Beispiel ist das Generieren einer Maske für alle Threads, die in dem aktuellen Ausführungszweig aktiv sind.
 Schließlich können noch alle Threads ohne besondere Berechnung synchronisiert werden.
-Dies ist zum Beispiel nötig, wenn ein Thread aus dem Speicher lesen will, den andere Threads vorher beschreiben und dieser sicherstellen will, dass die Daten fertig geschrieben wurden. \cite{Lin2018}
+Dies ist zum Beispiel nötig, wenn ein Thread aus dem Speicher lesen will, den andere Threads vorher beschreiben und dieser sicherstellen will, dass die Daten fertig geschrieben wurden \cite{Lin2018}.
 
 \section{Shared Memory}
 
-Eine Kommunikation zwischen Threads innerhalb eines Blocks, kann über sogenannten \emph{Shared Memory} geschehen.
+Eine Kommunikation zwischen Threads innerhalb eines Blocks kann über sogenannten \emph{Shared Memory} geschehen.
 Dadurch können größere Mengen von Informationen ausgetauscht werden, als dies über die Synchronisations-Operationen effizient möglich wäre.
-Dieser Speicher ist um einige Größenordnungen schneller als der globale Speicher, da sich dieser direkt auf dem Chip der GPU befindet. \cite{Harris2013}
+Dieser Speicher ist um einige Größenordnungen schneller als der globale Speicher, da sich dieser direkt auf dem Chip der GPU befindet \cite{Harris2013}.
 Die Speichergröße innerhalb eines Streaming Multiprocessors ist allerdings beschränkt, weshalb die Anzahl der Threads ebenfalls beschränkt ist, sofern eine große Menge Shared Memory von diesen benötigt wird.
 
 \section{Die CUDA-Programmierschnittstelle für C++}
@@ -108,3 +108,5 @@ void add(int n, float *x, float *y)
 		y[i] = x[i] + y[i];
 }
 \end{lstlisting}
+
+Mit den vorgestellten Informationen zum Grundaufbau von Grafikprozessoren, der Verwaltung von Threads und der Funktionsweise der C++-Programmierschnittstelle werden die in den nachfolgenden Kapiteln vorgestellten Techniken leicht verständlich sein.
