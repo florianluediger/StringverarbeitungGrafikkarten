@@ -1,4 +1,5 @@
 \chapter{Einfacher, paralleler String-Vergleich}
+\label{sec:equals_naiv}
 
 Um einige Techniken zur String-Verarbeitung in kompilierten Anfragepipelines auf Grafikkarten entwickeln zu können, wird zunächst ein Operator für den einfachen String-Vergleich für den Query Compiler erarbeitet.
 Ein Vergleich auf Gleichheit stellt dabei die einfachste, sinnvolle Variante von String-Verarbeitung dar, wodurch der Einfluss vieler Eigenschaften von Strings auf die Ausführung entsprechender Operationen leicht untersucht werden kann.
@@ -163,6 +164,8 @@ Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnu
 \begin{lstlisting}[language=MyC++,
 	caption=Naive Implementierung einer Selektion von Strings,
 	label=naive_equals]
+/* execute previous operators in the pipeline */
+
 data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
 
 // if string lengths are unequal, discard
@@ -181,6 +184,8 @@ while(active && search_id < search_length) {
 	
 	search_id++;
 }
+
+/* execute following operators in the pipeline */
 \end{lstlisting}
 
 In Listing \ref{naive_equals} ist die Implementierung des Operators dargestellt, welcher in einer kompilierten Anfragepipeline die Selektion eines String-Attributs durchführen kann.
