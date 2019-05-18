@@ -2,6 +2,166 @@
 
 \section{Verwendete Workloads und deren Merkmale}
 
+\subsection{Vergleich der Basisalgorithmen mit dem DBLP-Datensatz}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/regex_dblpANY_no_buffer.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.2cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			%legend style={at={(0,0)}}
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=flat]{daten/regex_dblpANY_no_buffer.csv}; 
+			\addlegendentry{Flat};
+			\addplot table [x expr=\coordindex, y=table]{daten/regex_dblpANY_no_buffer.csv};
+			\addlegendentry{Table}
+			\addplot table [x expr=\coordindex, y=equals]{daten/regex_dblpANY_no_buffer.csv};
+			\addlegendentry{Präfix}
+			\addplot table [x expr=\coordindex, y=like]{daten/regex_dblpANY_no_buffer.csv};
+			\addlegendentry{Like}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeit für Präfixtest mit Basisalgorithmen für den DBLP-Datensatz}
+	\label{fig:regex_dblpANY_no_buffer}
+\end{figure}
+
+\subsection{Verbesserung der Algorithmen durch das Lane Refill}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/regex_dblpANY_buffer.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.2cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			%legend style={at={(0,0)}}
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=flat]{daten/regex_dblpANY_buffer.csv}; 
+			\addlegendentry{Flat};
+			\addplot table [x expr=\coordindex, y=table]{daten/regex_dblpANY_buffer.csv};
+			\addlegendentry{Table}
+			\addplot table [x expr=\coordindex, y=equals]{daten/regex_dblpANY_buffer.csv};
+			\addlegendentry{Präfix}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Verbesserungen der Algorithmen durch das Lane Refill für den DBLP-Datensatz}
+	\label{fig:regex_dblpANY_buffer}
+\end{figure}
+
+\subsection{Vergleich der optimierten Algorithmen}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/regex_dblpANY_optimal.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.2cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			%legend style={at={(0,0)}}
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=flat-buffer]{daten/regex_dblpANY_optimal.csv}; 
+			\addlegendentry{Flat mit Lane Refill};
+			\addplot table [x expr=\coordindex, y=table-buffer]{daten/regex_dblpANY_optimal.csv};
+			\addlegendentry{Table mit Lane Refill}
+			\addplot table [x expr=\coordindex, y=equals-buffer]{daten/regex_dblpANY_optimal.csv};
+			\addlegendentry{Präfix mit Lane Refill}
+			\addplot table [x expr=\coordindex, y=like]{daten/regex_dblpANY_optimal.csv};
+			\addlegendentry{Like}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeiten der optimierten Algorithmen für den DBLP-Datensatz}
+	\label{fig:regex_dblpANY_optimal}
+\end{figure}
+
+\subsection{Einfluss beliebiger Anfangszeichen in dem DBLP-Datensatz}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/regex_ANYdblpANY.csv}{Selectivity},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.15cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			%legend style={at={(0,0)}}
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=flat]{daten/regex_ANYdblpANY.csv}; 
+			\addlegendentry{Flat};
+			\addplot table [x expr=\coordindex, y=flat-buffer]{daten/regex_ANYdblpANY.csv};
+			\addlegendentry{Flat mit Lane Refill}
+			\addplot table [x expr=\coordindex, y=table]{daten/regex_ANYdblpANY.csv};
+			\addlegendentry{Table}
+			\addplot table [x expr=\coordindex, y=table-buffer]{daten/regex_ANYdblpANY.csv};
+			\addlegendentry{Table mit Lane Refill}
+			\addplot table [x expr=\coordindex, y=like]{daten/regex_ANYdblpANY.csv};
+			\addlegendentry{Like}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeiten für Benchmark, der beliebige Anfangszeichen zulässt}
+	\label{fig:regex_ANYdblpANY}
+\end{figure}
+
+\subsection{Vergleich verschiedener Automatengrößen mit dem TPC-H-Datensatz}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,		% Säulendiagramm
+			xlabel={Anteil Matches},	% Achsenbeschriftung
+			xtick=data,
+			xticklabels from table={daten/regex_p_name.csv}{words},	% Beschriftung der Markierungen 
+			width=\textwidth,	% Diagrammbreite
+			bar width=0.4cm,	% Breite der Säulen
+			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymin=0,		% Säulen stehen auf der X-Achse
+			%legend style={at={(0,0)}}
+			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend style={legend cell align=left} % Text linksbündig anordnen
+			]
+			\addplot table [x expr=\coordindex, y=flat]{daten/regex_p_name.csv}; 
+			\addlegendentry{Flat};
+			\addplot table [x expr=\coordindex, y=flat-buffer]{daten/regex_p_name.csv};
+			\addlegendentry{Flat mit Lane Refill}
+			\addplot table [x expr=\coordindex, y=table]{daten/regex_p_name.csv};
+			\addlegendentry{Table}
+			\addplot table [x expr=\coordindex, y=table-buffer]{daten/regex_p_name.csv};
+			\addlegendentry{Table mit Lane Refill}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Laufzeiten für unterschiedliche Automatengrößen mit dem TPC-H Datensatz}
+	\label{fig:regex_p_name}
+\end{figure}
+
 \section{Vorstellung der Messergebnisse}
 
 \section{Diskussion der Ergebnisse}
