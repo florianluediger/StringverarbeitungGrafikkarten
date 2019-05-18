@@ -1,4 +1,5 @@
 \chapter{Paralleler Musterabgleich mit regulären Ausdrücken}
+\label{sec:regex_naiv}
 
 Aufbauend auf Kapitel \ref{sec:equals_naiv} wird im Folgenden eine komplexere Operation in Form eines Matchers für reguläre Ausdrücke im Kontext der in Kapitel \ref{sec:pipelining} beschriebenen Compiled Query Pipelines auf GPUs untersucht.
 Diese Operation stellt wieder eine Selektion über eine Spalte von String-Daten dar, bei der alle Tupel in die Ergebnisrelation übernommen werden, welche dem Muster eines vorgegebenen regulären Ausdrucks entsprechen.

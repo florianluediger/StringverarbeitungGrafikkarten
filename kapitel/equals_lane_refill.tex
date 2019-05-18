@@ -7,6 +7,7 @@ Das Prinzip wurde im Kontext von kompilierten Anfragepipelines mit SIMD als \emp
 Im Folgenden wird das Verfahren als \emph{Lane Refill} bezeichnet, da es die inaktiven Lanes in einem Warp dynamisch wieder auffüllt.
 
 \section{Funktionsweise des String-Vergleichs mit Lane Refill}
+\label{sec:equals_lane_refill_funktionsweise}
 
 Zur Verbesserung des einfachen String-Vergleichs kann das naive Verfahren durch das Lane Refill erweitert werden, indem ein Puffer eingeführt wird, in dem teilweise abgearbeitete Tupel zwischengespeichert werden können.
 Bei der naiven Umsetzung gibt es drei Stellen, an denen Lanes innerhalb eines Warps inaktiv werden können.
@@ -180,6 +181,7 @@ while(!flush_pipeline) {
 \end{lstlisting}
 
 \section{Technische Umsetzung der Pufferung}
+\label{sec:equals_lane_refill_pufferung}
 
 Der Puffer wird mithilfe der CUDA-Programmierschnittstelle als Shared Memory umgesetzt, um eine effiziente Kommunikation zwischen den Lanes zu ermöglichen.
 Für den einfachen String-Vergleich werden dazu zwei Speicherbereiche benötigt, welche mit dem Schlüsselwort \texttt{\_\_shared\_\_} initialisiert werden.

@@ -1,5 +1,60 @@
 \chapter{Verbesserung des Verfahrens zum Musterabgleich}
 
-\section{Ansatzpunkte für Lane-Refill}
+Bei dem in Kapitel \ref{sec:regex_naiv} vorgestellten Verfahren tritt ein ähnliches Problem auf wie bei dem zuvor beschriebenen, einfachen String-Vergleich.
+Aufgrund der unterschiedlichen Struktur von Strings werden einige Lanes innerhalb eines Warps früher als andere Lanes inaktiv wenn sie einen Fehlerzustand oder das Ende des Eingabestrings erreicht haben.
+Dies hat eine Unterauslastung des Warps zur Folge, wodurch Rechenleistung verschwendet wird.
+Aus diesem Grund ist es wünschenswert den inaktiv gewordenen Threads dynamisch neue Arbeit zuzuweisen.
+Dazu wird das in Kapitel \ref{sec:equals_lane_refill} vorgestellte Verfahren zum Einsatz kommen, wodurch im Rahmen der kompilierten Anfragepipelines die Laufzeit optimiert werden kann.
+Das von Lang et al. entwickelte Verfahren \cite{Lang2018} wird im Folgenden weiterhin als \emph{Lane Refill} bezeichnet.
 
-\section{Umsetzung mit Lane-Refill}
+
+\section{Struktur des optimierten Musterabgleichs mit Lane Refill}
+
+Die grundlegende Funktionsweise des Lane Refill wurde in Kapitel \ref{sec:equals_lane_refill_funktionsweise} beschrieben und ist genau so auch auf den parallelen Musterabgleich anwendbar.
+Bei dem Verfahren wird eine Lane immer dann inaktiv, wenn der untersuchte String vollständig durchlaufen wurde oder ein Fehlerzustand erreicht wurde und es nicht mehr möglich ist, einen akzeptierenden Zustand zu erreichen.
+Nach genau diesen Ereignissen muss überprüft werden, ob die gewünschte Auslastung des Warps unterschritten wird und gegebenenfalls die aktuellen Elemente in den Puffer geschrieben oder neue Elemente aus dem Puffer geladen werden.
+
+\newpage
+
+\begin{lstlisting}[language=MyC++,
+caption=Struktur des Musterabgleichs mit Lane Refill,
+label=regex_lane_refill_code]
+while(buffercount + numactive > THRESHOLD) {
+	if (numactive < THRESHOLD) {
+		
+		/* refill empty lanes from buffer in case of underutilization */
+		
+		bufferelements = bufferelements - numrefill;
+	}
+	
+	if (active) {
+		cs = singleDfaStep(cs, p);
+		
+		if (cs == 0)		// invalid state reached
+			active = false;
+	}
+	
+	p++;
+	
+	if (active && p == pe) {		// string completely processed
+		if (cs >= machine_first_final) {	// finishes with accepting state
+		
+			/* execute following operators in the pipeline */
+		
+		} else {	// finishes with non accepting state
+			active = false;
+		}
+	}
+	
+	numactive = __popc(__ballot_sync(ALL_LANES, active));
+}
+\end{lstlisting}
+
+Die allgemeine Struktur des Kernels ist identisch zu der in Listing \ref{equals_lane_refill_code} vorgestellten Struktur des einfachen String-Vergleichs.
+Um den parallelen Musterabgleich damit umzusetzen, muss die innere Schleife wie in Listing \ref{regex_lane_refill_code} dargestellt angepasst werden.
+
+Zunächst wird hier von allen aktiven Lanes ein Schritt im DFA durchgeführt und überprüft, ob ein Fehlerzustand erreicht wurde.
+Anschließend wird für die vollständig durchlaufenen Strings überprüft, ob diese sich in einem akzeptierenden Zustand befinden und gegebenenfalls die Folgeoperationen der Pipeline ausgeführt.
+
+Die technische Umsetzung der Puffer-Operationen funktioniert identisch zu dem in Kapitel \ref{sec:equals_lane_refill_pufferung} beschriebenen Vorgehen, mit dem Unterschied, dass hier der Inhalt der Variablen \texttt{p}, \texttt{pe} und \texttt{cs} im Puffer gespeichert werden.
+Eine Reduzierung des Overheads durch die Puffer-Operation ist ebenfalls analog zu dem in Kapitel \ref{sec:unroll} vorgestellten Verfahren möglich.
