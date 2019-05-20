@@ -79,6 +79,7 @@ Nachdem sämtliche Lanes ihre Berechnung abgeschlossen haben, wird überprüft, 
 Ist dies der Fall wird die Lane für folgende Operationen aktiviert, ansonsten bleibt diese deaktiviert, sodass die Folgeoperationen nicht ausgeführt werden müssen.
 
 \section{Erstellen und Durchlaufen des Automaten}
+\label{sec:regex_duchlaufen}
 
 Das vorgestellte Verfahren generiert vor der Ausführung des Anfrageplans einen deterministischen Automaten, welcher beim kompilieren der Anfragepipeline in den Kernel eingebaut wird.
 Der Automat wird mithilfe des Ragel State Machine Compilers \cite{Thurston2009} erzeugt, auf dem auch der Code zur Verarbeitung des Automaten basiert.
@@ -158,6 +159,7 @@ Abbildung \ref{ragel_visualisierung} zeigt dazu die visuelle Darstellung des erz
 \end{figure}
 
 \section{Alternative Verfahren}
+\label{sec:regex_alternativen}
 
 Zusätzlich zur \emph{flat}-Einstellung, erlaubt Ragel außerdem eine Generierung von Code, welche für die Verarbeitung regulärer Ausdrücke mit einem großen Alphabet optimiert wurde.
 Diese Option kann über die \emph{table}-Einstellung abgerufen werden.
