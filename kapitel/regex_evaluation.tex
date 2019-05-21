@@ -21,6 +21,7 @@ Abbildungen \ref{fig:regex_dblpANY_no_buffer} bis \ref{fig:regex_p_name} zeigen 
 Für ein einfacheres Verständnis werden besondere Auffälligkeiten dazu aufgezeigt und im nächsten Abschnitt analysiert.
 
 \subsection{Vergleich der Basisalgorithmen mit dem DBLP-Datensatz}
+\label{sec:regex_evaluation_beobachtung_1}
 
 Bei der ersten Messung soll überprüft werden, wie sich die in Kapitel \ref{sec:regex_naiv} vorgestellten Verfahren zur Durchführung eines einfachen Musterabgleichs ohne tiefgreifende Verbesserungen wie das Lane Refill-Verfahren verhalten.
 Untersucht werden hier die in Kapitel \ref{sec:regex_duchlaufen} beschriebene \emph{flat}-Variante des von Ragel generierten Algorithmus, die in Kapitel \ref{sec:regex_alternativen} vorgestellte \emph{table}-Variante dieses Verfahrens, die dort ebenfalls angesprochene \emph{LIKE}-Operation, welche aus DogQC entnommen wurde und die in Kapitel \ref{sec:prefixtest} vorgestellte Implementierung zum einfachen Präfixtest.
@@ -35,6 +36,7 @@ Der untersuchte reguläre Ausdruck sucht eine bestimmte Zeichenfolge am Anfang j
 			xtick=data,
 			xticklabels from table={daten/regex_dblpANY_no_buffer.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
+			height=300, % Diagrammhöhe
 			bar width=0.2cm,	% Breite der Säulen
 			ylabel={Laufzeit (ms)},	% Achsenbeschritung
 			ymin=0,		% Säulen stehen auf der X-Achse
@@ -64,6 +66,7 @@ Der Präfixtest ist bei einer Selektivität von unter 32\% zwischen 50\% und 65\
 Bei einem Anteil Matches von 64\% beträgt dieser Unterschied 37\%.
 
 \subsection{Verbesserung der Algorithmen durch das Lane Refill}
+\label{sec:regex_evaluation_beobachtung_2}
 
 Die nachfolgende Untersuchung dient dazu, den Einfluss des Lane Refill auf die Varianten \emph{Flat} und \emph{Table} des regulären Musterabgleichs sowie den einfachen Präfixtest zu analysieren.
 Der hier verwendete reguläre Ausdruck ist derselbe wie im vorherigen Abschnitt.
@@ -77,6 +80,7 @@ Der hier verwendete reguläre Ausdruck ist derselbe wie im vorherigen Abschnitt.
 			xtick=data,
 			xticklabels from table={daten/regex_dblpANY_buffer.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
+			height=300, % Diagrammhöhe
 			bar width=0.2cm,	% Breite der Säulen
 			ylabel={Verbesserung durch Lane Refill (\%)},	% Achsenbeschritung
 			ymin=0,		% Säulen stehen auf der X-Achse
@@ -103,6 +107,7 @@ Bis zu einer Selektivität von 16\% beträgt die Verbesserung der beiden Verfahr
 Die Verbesserung aller untersuchter Algorithmen ist für einen mittelgroßen Anteil Matches am größten und fällt besonders für größere Anteile stark ab.
 
 \subsection{Vergleich der optimierten Algorithmen}
+\label{sec:regex_evaluation_beobachtung_3}
 
 Schließlich werden die absoluten Laufzeiten der durch das Lane Refill verbesserten Verfahren untereinander und mit dem \emph{LIKE}-Operator verglichen.
 Der reguläre Ausdruck bleibt derselbe wie in den letzten beiden Abschnitten beschrieben.
@@ -116,6 +121,7 @@ Der reguläre Ausdruck bleibt derselbe wie in den letzten beiden Abschnitten bes
 			xtick=data,
 			xticklabels from table={daten/regex_dblpANY_optimal.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
+			height=300, % Diagrammhöhe
 			bar width=0.2cm,	% Breite der Säulen
 			ylabel={Laufzeit (ms)},	% Achsenbeschritung
 			ymin=0,		% Säulen stehen auf der X-Achse
@@ -139,10 +145,11 @@ Der reguläre Ausdruck bleibt derselbe wie in den letzten beiden Abschnitten bes
 
 Die in Abbildung \ref{fig:regex_dblpANY_optimal} dargestellten Laufzeiten aller Algorithmen steigen für einen höheren Anteil von Matches monoton an.
 Im Allgemeinen liefert der durch das Lane Refill verbesserte Präfixtest die beste Laufzeit, was nur nicht für eine Selektivität von 64\% gilt.
-Für eine steigende Anzahl passender Matches steigen die gepufferten Operationen besonders stark an, weshalb die ungepufferte \emph{LIKE}-Implementierung für hohe Selektivitäten eine vergleichsweise geringe Laufzeit bietet, ob wohl diese für niedrige Selektivitäten zu den langsamsten gehört.
+Für eine steigende Anzahl passender Matches steigen die gepufferten Operationen besonders stark an, weshalb die ungepufferte \emph{LIKE}-Implementierung für hohe Selektivitäten eine vergleichsweise geringe Laufzeit bietet, obwohl diese für niedrige Selektivitäten zu den langsamsten gehört.
 Die \emph{Flat}-Variante des regulären Musterabgleichs bietet stets eine geringere Laufzeit als die entsprechende \emph{Table}-Variante.
 
 \subsection{Einfluss beliebiger Anfangszeichen in dem DBLP-Datensatz}
+\label{sec:regex_evaluation_beobachtung_4}
 
 Als nächstes wird untersucht, wie sich die Laufzeiten der Algorithmen entwickeln, wenn beliebige Zeichen vor dem gesuchten String stehen dürfen.
 Der Datensatz bleibt dazu identisch zu den vorherigen Tests, es wird lediglich der reguläre Ausdruck dementsprechend erweitert, dass dieser beliebige Zeichen vor dem Suchstring zulässt.
@@ -157,11 +164,13 @@ Diese Modifikation führt dazu, dass der Präfixtest an dieser Stelle nicht mehr
 			xtick=data,
 			xticklabels from table={daten/regex_ANYdblpANY.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
+			height=300, % Diagrammhöhe
 			bar width=0.15cm,	% Breite der Säulen
 			ylabel={Laufzeit (ms)},	% Achsenbeschritung
+			ymax=800,
 			ymin=0,		% Säulen stehen auf der X-Achse
 			%legend style={at={(0,0)}}
-			legend pos=north west,		% Legende am oberen linken Rand positionieren
+			legend pos=north east,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
 			\addplot table [x expr=\coordindex, y=flat]{daten/regex_ANYdblpANY.csv}; 
@@ -188,6 +197,7 @@ Die Verbesserung der \emph{Flat}-Variante des Musterabgleichs durch das Lane Ref
 Für die \emph{Table}-Variante beträgt die Verbesserung zwischen 17\% und 33\% und wird ebenfalls für höhere Anzahlen von Matches größer.
 
 \subsection{Vergleich verschiedener Automatengrößen mit dem TPC-H-Datensatz}
+\label{sec:regex_evaluation_beobachtung_5}
 
 Zum Schluss wird untersucht, welchen Einfluss die Größe des Automaten auf die beiden Algorithmen zum parallelen Musterabgleich hat.
 Dazu wurde eine Selektion über die Name-Spalte der Products Relation aus dem TPC-H-Datensatz durchgeführt, bei der die Größe des Automaten variiert wurde.
@@ -206,6 +216,7 @@ Dadurch wird ein größerer Automat bei gleichbleibender Selektivität erreicht.
 			xtick=data,
 			xticklabels from table={daten/regex_p_name.csv}{states},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
+			height=300, % Diagrammhöhe
 			bar width=0.4cm,	% Breite der Säulen
 			ylabel={Laufzeit (ms)},	% Achsenbeschritung
 			ymin=0,		% Säulen stehen auf der X-Achse
@@ -235,3 +246,28 @@ Die Verbesserung durch das Einführen des Lane Refill-Verfahrens für den \emph{
 Der \emph{Table}-Algorithmus profitiert vom Lane Refill mit einer Verbesserung zwischen 0\% und 5\% mit einem Ausreißer von 20\% bei 28 Zuständen.
 
 \section{Diskussion der Ergebnisse}
+
+Die durchgeführten Untersuchungen ergeben ein einheitliches Bild zu dem Verhalten der vorgestellten Algorithmen und deren Verbesserungen durch das Lane Refill-Verfahren.
+In den ersten drei Abschnitten wird ein Präfixtest untersucht, welcher sich für den regulären Musterabgleich und den \emph{LIKE}-Operator ähnlich wie für die zuvor beschriebene einfache Umsetzung des Präfixtests.
+Die geringe Laufzeit für eine niedrige Anzahl von Matches ist darin begründet, dass viele Zeichenketten vorzeitig verworfen werden können.
+Für das Durchlaufen eines Automaten bedeutet dies, dass dieser in einen Fehlerzustand gerät und die Lane inaktiv wird und der \emph{LIKE}-Operator verhält sich in diesem Fall wie der einfache Präfixtest.
+Dadurch, dass viele Zeichenketten vorzeitig verworfen werden, ist bei den Basisalgorithmen die Wahrscheinlichkeit geringer, dass in einem Warp ein Match vorhanden ist und somit der Warp nicht vollständig abgearbeitet werden muss.
+Innerhalb der durch das Lane Refill intern gepufferten Operationen ist für geringe Selektivitäten die Anzahl der Matches pro Warp niedriger, weshalb öfter dynamisch Tupel nachgeladen werden können als für hohe Selektivitäten.
+
+Für die Basisalgorithmen kann beobachtet werden, dass die mächtigen Verfahren zum regulären Musterabgleich eine weitaus geringere Performanz bieten als die funktionsärmeren Präfix- oder \emph{LIKE}-Operationen.
+Dies kann damit begründet werden, dass das Durchlaufen eines Automaten mehr Instruktionen und Speicherzugriffe erfordert, als das einfache Vergleichen zweier Zeichen wie es bei den simpleren Operationen durchgeführt wird.
+Die Untersuchung aus Abschnitt \ref{sec:regex_evaluation_beobachtung_2} zeigt, dass das Erhöhen der Auslastung der Warps durch das Lane Refill einen signifikanten Laufzeitgewinn erbringt, wodurch vor allem die Algorithmen, die mit regulären Ausdrücken arbeiten, profitieren und näher an die geringere Laufzeit der simpleren Operationen heran rücken.
+Für einen großen Anteil von Matches wird die Verbesserung durch das Lane Refill geringer, was daran liegt, dass in den naiven Verfahren gar keine starke Unterauslastung mehr auftritt.
+Die Warps sind grundsätzlich höher ausgelastet, da ein höherer Anteil Matches besteht und somit seltener der Fall eintritt, dass nur wenige Lanes arbeiten während die restlichen Lanes auf deren Fertigstellung warten.
+Es lässt sich also durch das Lane Refill kein so großer Vorteil mehr erreichen.
+
+Werden wie in Abschnitt \ref{sec:regex_evaluation_beobachtung_4} untersucht beliebige Zeichen vor dem Suchstring im regulären Ausdruck erlaubt, kann eine weitgehend konstante Laufzeit für alle Algorithmen beobachtet werden.
+Dies liegt daran, dass immer die gesamte Zeichenkette durchlaufen werden muss, da der Suchstring an einer beliebigen Stelle vorkommen kann.
+Die Tatsache, dass die Laufzeit in diesem Experiment für eine höhere Anzahl von Matches geringer wird, ist darin begründet, dass die in den Datensatz eingesetzten Strings, welche ein Match ergeben, eine unterdurchschnittliche Länge besitzen und somit insgesamt weniger Zeichen verarbeitet werden müssen.
+Durch die Einführung des Lane Refill wird hier ein gewisser Laufzeitgewinn erreicht, da die String-Längen im Datensatz unterschiedlich sind.
+Daher werden einige Lanes, die ihren String bereits abgearbeitet haben, früher inaktiv als andere und können dynamisch neue Tupel nachladen.
+Bei der Verwendung des TPC-H-Datensatzes in Abschnitt \ref{sec:regex_evaluation_beobachtung_5} zeigt sich nur eine geringfügige Laufzeitverbesserung durch das Lane Refill, was daran liegt, dass die Strings alle ähnliche Längen haben und aufgrund der beliebigen Anfangszeichen vollständig durchlaufen werden müssen.
+
+Die Laufzeit der \emph{Flat}-Einstellung von Ragel ist sowohl mit als auch ohne Lane Refill schneller als die \emph{Table}-Einstellung.
+Dies ist ein Indikator dafür, dass die Größe des verwendeten Alphabets nicht zu groß für die \emph{Flat}-Variante ist und die Verwendung einer binären Suche wie sie in der \emph{Table}-Einstellung zu finden ist, nicht nötig ist, sondern zu Laufzeiteinbußen durch den erhöhten Overhead führt.
+Auch die Größe des Automaten ändert an dieser Beobachtung nichts, da auch im Abschnitt 11.2.5 zu erkennen ist, dass die einfache Flat-Variante in jedem Falle schneller ist.
