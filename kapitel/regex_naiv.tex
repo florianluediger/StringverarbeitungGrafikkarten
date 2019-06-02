@@ -12,14 +12,17 @@ Schließlich werden noch einige alternative Verfahren vorgestellt, welche unters
 
 Die Verwendung von regulären Ausdrücken eröffnet in vielen Anwendungsfällen verschiedenste Möglichkeiten, String-Daten effizient zu verarbeiten und die Leistungsfähigkeiten des Datenbanksystems voll auszunutzen.
 Reguläre Ausdrücke stellen ein mächtiges Werkzeug dar, welches den meisten Anwendern von Datenbankmanagementsystemen bekannt ist.
-Diese sind vor allem relevant, da sie wie in Kapitel \ref{sec:regex_grundlagen} beschrieben das hoch effiziente Auswerten komplexer Muster erlauben.
+Diese sind vor allem relevant, da sie wie in Kapitel \ref{sec:regex} beschrieben das hoch effiziente Auswerten komplexer Muster erlauben.
 
-Da viele Datenbankmanagementsysteme keine volle Unterstützung für reguläre Ausdrücke bieten, muss eine entsprechende Selektion nach dem Ausführen des Anfrageplans durch das DBMS manuell im Anwendungsprogramm durchgeführt werden.
+Die meisten aktuellen Datenbankmanagementsysteme bieten eine Unterstützung für reguläre Ausdrücke, da sie das effiziente Abgleichen komplexer Muster ermöglichen und dabei eine hohe Leistung garantieren.
+Gäbe es eine solche Funktion nicht, müsste eine entsprechende Selektion nach dem Ausführen des Anfrageplans durch das DBMS manuell im Anwendungsprogramm durchgeführt werden.
 An dieser Stelle entstehen zahlreiche Probleme, da der Optimierer die Selektion nicht an der optimalen Stelle im Anfrageplan platzieren kann, damit frühzeitig Tupel weg fallen, die nicht in das Ergebnis aufgenommen werden.
 Es entsteht also schon beim Datenbankserver eine erhöhte Last durch das unnötige Verarbeiten von Tupeln.
 Diese werden zusätzlich noch über das Netzwerk zur Anwendung übertragen, wodurch erneut eine erhöhte Netzlast entsteht.
 Die Anwendung wiederum muss anschließend mit einer potenziell geringeren Leistungsfähigkeit als der Datenbankserver die Selektion durchführen, wodurch an dieser Stelle wieder eine unnötig hohe Last entsteht.
 Sollten also Anwendungsfälle auftreten, bei denen eine Selektion durch reguläre Ausdrücke gewünscht ist, stellt die Unterstützung dieser Operation durch das Datenbankmanagementsystem einen massiven Vorteil dar.
+
+%TODO: Was genau ist denn jetzt hier die Motivation? --> Eventuell in die Einleitung verschieben
 
 \section{Struktur der Operation}
 
@@ -38,34 +41,36 @@ Schließlich wird jedem Thread eine neue Zeichenkette zugewiesen, mit der das Ve
 
 \newpage
 
-\begin{lstlisting}[language=MyC++,
-caption=Naive Implementierung einer Selektion mit einem regulären Ausdruck,
-label=naive_regex]
-/* execute previous operators in the pipeline */
-
-char *p = data_content + char_offset[loop_var];
-char *pe = data_content + char_offset[loop_var + 1];
-
-int cs = machine_start;
-
-while(active) {
-	cs = singleDfaStep(cs, p);
+\begin{figure}[ht]
+	\begin{lstlisting}[language=MyC++]
+	/* execute previous operators in the pipeline */
 	
-	p++;
+	char *p = data_content + char_offset[loop_var];
+	char *pe = data_content + char_offset[loop_var + 1];
 	
-	if (p == pe)		// string completely processed
-		active = false;
+	int cs = machine_start;
 	
-	if (cs == 0)		// invalid state reached
-		active = false;
-}
+	while(active) {
+		cs = singleDfaStep(cs, p);
+		
+		p++;
+		
+		if (p == pe)		// string completely processed
+			active = false;
+		
+		if (cs == 0)		// invalid state reached
+			active = false;
+	}
+	
+	active = cs >= machine_first_final;
+	
+	/* execute following operators in the pipeline */
+	\end{lstlisting}
+	\caption{Naive Implementierung einer Selektion mit einem regulären Ausdruck}
+	\label{naive_regex}
+\end{figure}
 
-active = cs >= machine_first_final;
-
-/* execute following operators in the pipeline */
-\end{lstlisting}
-
-In Listing \ref{naive_regex} wird die Implementierung des Operators vorgestellt, der im Kontext der kompilierten Anfragepipelines die Selektion über einen regulären Ausdruck ausführt.
+In Abbildung \ref{naive_regex} wird die Implementierung des Operators vorgestellt, der im Kontext der kompilierten Anfragepipelines die Selektion über einen regulären Ausdruck ausführt.
 Die Datensätze \texttt{data\_content} und \texttt{char\_offset} enthalten wie in Kapitel \ref{sec:equals_umsetzung} die Zeichenketten aus der zu untersuchenden Spalte und die Indizes der einzelnen Tupel innerhalb des Datensatzes.
 
 Zunächst wird die Lane initialisiert, indem ein Zeiger \texttt{p} auf den Anfang des zu untersuchenden Strings und der Zeiger \texttt{pe} auf das Ende gesetzt wird.
@@ -91,63 +96,65 @@ Der generierte Code lässt sich in zwei Hauptbestandteile aufteilen.
 Zum einen wird etwas Code zur tatsächlichen Durchführung des Musterabgleichs generiert, welcher für unterschiedliche Ausdrücke größtenteils identisch ist.
 Außerdem werden einige Tabellen generiert, welche die tatsächlichen Zustände und Zustandsübergänge des Automaten beinhalten und für jeden regulären Ausdruck neu generiert werden müssen.
 
- \begin{lstlisting}[language=MyC++,
- caption=Methode zur Durchführung eines DFA-Schrittes,
- label=naive_regex_singledfastep]
- __device__ int singleDfaStep(int cs, char* p) {
-	 int _slen;
-	 int _trans;
-	 const char *_keys;
-	 const char *_inds;
-	 
-	 _keys = _machine_trans_keys + (cs<<1);
-	 _inds = _machine_indicies + _machine_index_offsets[cs];
-	 
-	 _slen = _machine_key_spans[cs];
-	 _trans = _inds[ _slen > 0 && _keys[0] <=(*p) &&
-		 (*p) <= _keys[1] ?
-		 (*p) - _keys[0] : _slen ];
-	 
-	 return _machine_trans_targs[_trans];
- }
- \end{lstlisting}
+\begin{figure}[ht]
+	 \begin{lstlisting}[language=MyC++]
+	 __device__ int singleDfaStep(int cs, char* p) {
+		 int _slen;
+		 int _trans;
+		 const char *_keys;
+		 const char *_inds;
+		 
+		 _keys = _machine_trans_keys + (cs<<1);
+		 _inds = _machine_indicies + _machine_index_offsets[cs];
+		 
+		 _slen = _machine_key_spans[cs];
+		 _trans = _inds[ _slen > 0 && _keys[0] <=(*p) &&
+			 (*p) <= _keys[1] ?
+			 (*p) - _keys[0] : _slen ];
+		 
+		 return _machine_trans_targs[_trans];
+	 }
+	 \end{lstlisting}
+	 \caption{Methode zur Durchführung eines DFA-Schrittes}
+	 \label{naive_regex_singledfastep}
+\end{figure}
  
- Listing \ref{naive_regex_singledfastep} zeigt die Methode zur Durchführung eines DFA-Schrittes, welche in Listing \ref{naive_regex} verwendet wird.
+ Abbildung \ref{naive_regex_singledfastep} zeigt die Methode zur Durchführung eines DFA-Schrittes, welche in Abbildung \ref{naive_regex} verwendet wird.
  Die Implementierung basiert auf dem durch Ragel erzeugten Ausführungscode, welcher mit der \emph{flat}-Einstellung generiert wurde.
  Dies stellt den simpelsten Code dar, der von Ragel generiert wird, welcher sehr ähnlich zu dem in Kapitel \ref{sec:regex} vorgestellten Prinzip ist.
- Hier werden die ebenfalls von Ragel generierten und in Listing \ref{naive_regex_felder} dargestellten Felder verwendet, welche den eigentlichen DFA enthalten.
+ Hier werden die ebenfalls von Ragel generierten und in Abbildung \ref{naive_regex_felder} dargestellten Felder verwendet, welche den eigentlichen DFA enthalten.
  In diesem Beispiel handelt es sich um den Automaten, der aus dem Ausdruck \texttt{(0|1)*((00)+|001)0} generiert wurde.
  
- \newpage
- 
- \begin{lstlisting}[language=MyC++,
- caption=Methode zur Durchführung eines DFA-Schrittes,
- label=naive_regex_felder]
-static const char _machine_trans_keys[] = {
-	0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0
-};
-
-static const char _machine_key_spans[] = {
-	0, 2, 2, 2, 2, 2, 2
-};
-
-static const char _machine_index_offsets[] = {
-	0, 0, 3, 6, 9, 12, 15
-};
-
-static const char _machine_indicies[] = {
-	0, 2, 1, 3, 2, 1, 4, 
-	5, 1, 6, 2, 1, 4, 5, 1, 
-	3, 2, 1, 0
-};
-
-static const char _machine_trans_targs[] = {
-	2, 0, 1, 3, 5, 4, 6
-};
-
-static const int machine_start = 1;
-static const int machine_first_final = 5;
-\end{lstlisting}
+ \begin{figure}[ht]
+	 \begin{lstlisting}[language=MyC++]
+	static const char _machine_trans_keys[] = {
+		0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0
+	};
+	
+	static const char _machine_key_spans[] = {
+		0, 2, 2, 2, 2, 2, 2
+	};
+	
+	static const char _machine_index_offsets[] = {
+		0, 0, 3, 6, 9, 12, 15
+	};
+	
+	static const char _machine_indicies[] = {
+		0, 2, 1, 3, 2, 1, 4, 
+		5, 1, 6, 2, 1, 4, 5, 1, 
+		3, 2, 1, 0
+	};
+	
+	static const char _machine_trans_targs[] = {
+		2, 0, 1, 3, 5, 4, 6
+	};
+	
+	static const int machine_start = 1;
+	static const int machine_first_final = 5;
+	\end{lstlisting}
+	\caption{Generierte Felder, die den DFA enthalten}
+	\label{naive_regex_felder}
+\end{figure}
  
 Da diese Darstellung des Automaten für den Menschen kaum lesbar ist und ein Debugging somit sehr aufwändig werden würde, bietet Ragel außerdem ein Werkzeug zur Visualisierung des Graphen.
 Die vorher gezeigte Abbildung \ref{dfa_beispiel} zeigt dazu die visuelle Darstellung des erzeugten DFA.

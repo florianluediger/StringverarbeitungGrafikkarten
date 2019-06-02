@@ -1,4 +1,5 @@
 \chapter{Grundlagen von regulären Ausdrücken}
+\label{sec:regex}
 
 Reguläre Ausdrücke sind ein Mittel, um ein Muster von Zeichenketten zu beschreiben.
 Alle Wörter, die dem so beschriebenen Muster entsprechen, werden in einer sogenannten \emph{Sprache} zusammengefasst.
@@ -34,57 +35,61 @@ Aus dem regulären Ausdruck \texttt{(0|1)*((00)+|001)0} lassen sich somit der in
 
 Der vorgestellte DFA lässt sich als zweidimensionale Übergangstabelle darstellen, die für einen gegebenen Ausgangszustand und ein gelesenes Eingabezeichen den Folgezustand zurückliefert.
 Beginnend mit dem Startzustand muss somit lediglich für jedes Zeichen des Eingabewortes der aktuelle Zustand entsprechend der Tabelle angepasst werden und es kann am Ende überprüft werden, ob ein akzeptierender Zustand erreicht wurde.
-Dieses Verfahren wird in Listing \ref{dfa_matching} schematisch dargestellt.
+Dieses Verfahren wird in Abbildung \ref{dfa_matching} schematisch dargestellt.
 
-\begin{lstlisting}[language=Python,
-caption=Durchführung des Musterabgleichs mithilfe eines DFA,
-label=dfa_matching]
-dfa = [[1, 0],
-	[2, 0],
-	[4, 3],
-	[5, 0],
-	[4, 3],
-	[2, 0]]
-cs = 0
-accepting = [4, 5]
-
-word = "010010"
-
-for c in word:
-	cs = dfa[cs][int(c)]
-
-if cs in accepting:
-	print("Word matches regular expression!")
-\end{lstlisting}
-
-\begin{lstlisting}[language=Python,
-caption=Durchführung des Musterabgleichs mithilfe eines NFA,
-label=nfa_matching]
-nfa = [[[0, 1, 3], [0]],
-	[[2], []],
-	[[1, 6], []],
-	[[4], []],
-	[[], [5]],
-	[[6], []],
-	[[], []]]
-cs = [0]
-accepting = [6]
-
-word = "010010"
-
-for c in word:
-	newCs = []
-	for s in cs:
-		newCs = newCs + nfa[s][int(c)]
-	cs = newCs
-
-for s in cs:
-	if s in accepting:
+\begin{figure}[ht]
+	\begin{lstlisting}[language=Python]
+	dfa = [[1, 0],
+		[2, 0],
+		[4, 3],
+		[5, 0],
+		[4, 3],
+		[2, 0]]
+	cs = 0
+	accepting = [4, 5]
+	
+	word = "010010"
+	
+	for c in word:
+		cs = dfa[cs][int(c)]
+	
+	if cs in accepting:
 		print("Word matches regular expression!")
-		break
-\end{lstlisting}
+	\end{lstlisting}
+	\caption{Durchführung des Musterabgleichs mithilfe eines DFA}
+	\label{dfa_matching}
+\end{figure}
 
-Listing \ref{nfa_matching} stellt entsprechend das Verfahren zur Durchführung des Musterabgleichs mittels eines NFAs dar.
+\begin{figure}[ht]
+	\begin{lstlisting}[language=Python]
+	nfa = [[[0, 1, 3], [0]],
+		[[2], []],
+		[[1, 6], []],
+		[[4], []],
+		[[], [5]],
+		[[6], []],
+		[[], []]]
+	cs = [0]
+	accepting = [6]
+	
+	word = "010010"
+	
+	for c in word:
+		newCs = []
+		for s in cs:
+			newCs = newCs + nfa[s][int(c)]
+		cs = newCs
+	
+	for s in cs:
+		if s in accepting:
+			print("Word matches regular expression!")
+			break
+	\end{lstlisting}
+	\caption{Durchführung des Musterabgleichs mithilfe eines NFA}
+	\label{nfa_matching}
+\end{figure}
+
+Abbildung \ref{nfa_matching} stellt entsprechend das Verfahren zur Durchführung des Musterabgleichs mittels eines NFAs dar.
 Dieses funktioniert sehr ähnlich zu einem DFA, allerdings müssen gegebenenfalls mehrere Zustände gleichzeitig betrachtet werden, wodurch die Auswertung des Automaten komplizierter und zeitaufwändiger wird.
 
 \section{Auswahl eines geeigneten Ansatzes}

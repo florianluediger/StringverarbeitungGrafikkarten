@@ -44,6 +44,8 @@
 % Bibtex deutsch
 \usepackage[backend=biber]{biblatex}
 \addbibresource{bibliography.bib}
+\renewbibmacro{in:}{%
+  \ifentrytype{inbook}{}{\printtext{\bibstring{in}\intitlepunct}}}
 
 % URLs
 \usepackage{url}

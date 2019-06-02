@@ -161,35 +161,37 @@ Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnu
 
 \newpage
 
-\begin{lstlisting}[language=MyC++,
-	caption=Naive Implementierung einer Selektion von Strings,
-	label=naive_equals]
-/* execute previous operators in the pipeline */
-
-data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
-
-// if string lengths are unequal, discard
-if (active && data_length != search_length)
-	active = false;
-
-int search_id = 0;
-
-// iterate over strings completely or until they don't match anymore
-while(active && search_id < search_length) {
-	int data_id = search_id + char_offset[loop_var];
+\begin{figure}[ht]
+	\begin{lstlisting}[language=MyC++]
+	/* execute previous operators in the pipeline */
 	
-	// when strings don't match, inactivate the lane
-	if (active && data_content[data_id] != search_string[search_id])
+	data_length = char_offset[loop_var+1] - char_offset[loop_var] - 1;
+	
+	// if string lengths are unequal, discard
+	if (active && data_length != search_length)
 		active = false;
 	
-	search_id++;
-}
+	int search_id = 0;
+	
+	// iterate over strings completely or until they don't match anymore
+	while(active && search_id < search_length) {
+		int data_id = search_id + char_offset[loop_var];
+		
+		// when strings don't match, inactivate the lane
+		if (active && data_content[data_id] != search_string[search_id])
+			active = false;
+		
+		search_id++;
+	}
+	
+	/* execute following operators in the pipeline */
+	\end{lstlisting}
+	\caption{Naive Implementierung einer Selektion von Strings}
+	\label{naive_equals}
+\end{figure}
 
-/* execute following operators in the pipeline */
-\end{lstlisting}
-
-In Listing \ref{naive_equals} ist die Implementierung des Operators dargestellt, welcher in einer kompilierten Anfragepipeline die Selektion eines String-Attributs durchführen kann.
-Dieser würde beispielsweise die rot markierte Selektion in Listing \ref{pipelining_example_code} ersetzen, falls das \emph{prio}-Attribut in dem Beispiel aus Abbildung \ref{pipeline_example_plan} Strings enthalten würde und alle Bestellungen mit der Priorität \emph{HIGH} gesucht werden würden.
+In Abbildung \ref{naive_equals} ist die Implementierung des Operators dargestellt, welcher in einer kompilierten Anfragepipeline die Selektion eines String-Attributs durchführen kann.
+Dieser würde beispielsweise die rot markierte Selektion in Abbildung \ref{pipelining_example_code} ersetzen, falls das \emph{prio}-Attribut in dem Beispiel aus Abbildung \ref{pipeline_example_plan} Strings enthalten würde und alle Bestellungen mit der Priorität \emph{HIGH} gesucht werden würden.
 Nach Abschluss der Berechnung ist der Wert der \texttt{active}-Variable genau dann \texttt{true}, wenn der String mit dem gesuchten String übereinstimmt, sodass im Anschluss mit weiteren Operationen fortgefahren werden kann.
 
 Diese Implementierung erwartet, dass einige Daten vorher vom Hauptspeicher in den Speicherbereich der GPU kopiert wurden und dort zur Verfügung stehen.
@@ -212,7 +214,7 @@ Dabei soll geprüft werden, ob die Strings aus einer Datenbanktabelle einen vord
 Der Algorithmus arbeitet ähnlich wie das in Kapitel \ref{sec:equals_umsetzung} vorgestellte Verfahren zum exakten String-Vergleich, mit einem einzigen Unterschied.
 Für jede Zeichenkette aus der Tabelle wird zunächst geprüft, ob diese länger als der gesuchte Präfix ist, anstatt zu prüfen, ob die Längen identisch sind.
 Danach verfährt der Algorithmus wie gehabt, sodass wieder beide Strings Zeichen für Zeichen verglichen werden, bis das Ende des Such-Präfixes erreicht ist.
-An der Implementierung in Listing \ref{naive_equals} ändert sich dementsprechend fast nichts, es muss nur die Bedingung in Zeile 4 durch \texttt{active \&\& data\_length >= search\_length} ersetzt werden.
+An der Implementierung in Abbildung \ref{naive_equals} ändert sich dementsprechend fast nichts, es muss nur die Bedingung in Zeile 4 durch \texttt{active \&\& data\_length >= search\_length} ersetzt werden.
 
 Dadurch, dass die Prüfung auf exakte Längengleichheit entfällt, müssen je nach Anwendungsfall viele Zeichenketten weiter durchlaufen werden, da diese nicht schon im ersten Schritt ausgeschlossen werden können, wie bei dem exakten String-Vergleich.
 Durch diesen Umstand und durch die Tatsache, dass ein Präfixtest in realen Systemen ein häufig gefragter Anwendungsfall ist, ergibt diese Umsetzung einen interessanten alternativen Workload.

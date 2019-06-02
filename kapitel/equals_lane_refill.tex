@@ -114,71 +114,60 @@ Um dieses Problem zu lösen, kann beispielsweise nach dem String-Vergleich eine 
 
 \section{Struktur des optimierten String-Vergleichs im Kernel}
 
-Um den einfachen String-Vergleich durch Lane Refill zu optimieren, muss die Struktur des Operators im Kernel etwas angepasst werden, was in Listing \ref{equals_lane_refill_code} dargestellt wird.
+Um den einfachen String-Vergleich durch Lane Refill zu optimieren, muss die Struktur des Operators im Kernel etwas angepasst werden, was in Abbildung \ref{equals_lane_refill_code} dargestellt wird.
 Die äußere Schleife ist bereits aus der Grundstruktur einer Pipeline, wie sie in Kapitel \ref{sec:pipelining} vorgestellt wurde, bekannt und wurde hier für ein leichteres Verständnis aufgegriffen.
-Innerhalb der Schleife werden wie bei der naiven Implementierung zunächst die Operatoren ausgeführt, die in der Pipeline vor dem String-Vergleich stehen und es wird die Länge der Zeichenkette untersucht und diese gegebenenfalls verworfen.
+Innerhalb der Schleife werden wie bei der naiven Implementierung zunächst die Operatoren ausgeführt, die in der Pipeline vor dem String-Vergleich stehen und es wird in Zeile 5 die Länge der Zeichenkette untersucht und diese gegebenenfalls verworfen.
 
-Um im nächsten Schritt beurteilen zu können, ob eine ausreichende Auslastung besteht, wird zunächst mithilfe einer Synchronisierungsoperation überprüft, wie viele Lanes im Warp aktiv sind.
-Sind im Puffer und im Warp in Summe noch ausreichend aktive Elemente vorhanden, um den vorher definierten Grenzwert zu überschreiten, so kann weiter mit dem String-Vergleich fortgefahren werden.
+Um im nächsten Schritt beurteilen zu können, ob eine ausreichende Auslastung besteht, wird zunächst in Zeile 8 mithilfe einer Synchronisierungsoperation überprüft, wie viele Lanes im Warp aktiv sind.
+Sind im Puffer und im Warp in Summe noch ausreichend aktive Elemente vorhanden, um den vorher definierten Grenzwert zu überschreiten, so kann ab Zeile 16 weiter mit dem String-Vergleich fortgefahren werden.
 Sollten die aktiven Lanes alleine nicht ausreichen, um den Grenzwert zu erreichen, werden gegebenenfalls zuvor noch die leeren Lanes mit Tupeln aus dem Puffer wieder aufgefüllt.
 Der eigentliche Vergleich zweier Zeichen funktioniert hier wieder genau wie bei der naiven Implementierung.
-Nach dem Vergleich wird geprüft, ob der String vollständig durchlaufen wurde und entsprechend die folgenden Operationen in der Pipeline ausgeführt.
-An dieser Stelle fällt auf, dass im Gegensatz zu der naiven Implementierung eine Verschachtelung entsteht, da die Folgeoperationen innerhalb der \texttt{while}-Schleife des String-Vergleichs-Operators ausgeführt werden.
+Nach dem Vergleich wird in Zeile 20 geprüft, ob der String vollständig durchlaufen wurde und entsprechend die folgenden Operationen in der Pipeline ausgeführt.
+An dieser Stelle fällt auf, dass im Gegensatz zu der naiven Implementierung eine Verschachtelung entsteht, da die Folgeoperationen innerhalb der in Zeile 10 beginnenden \texttt{while}-Schleife des String-Vergleichs-Operators ausgeführt werden.
 
-Ist nach erneuter Zählung der aktiven Lanes die Schleifenbedingung nicht mehr erfüllt, da zu wenige Tupel existieren, um eine ausreichende Auslastung zu gewährleisten, werden die Tupel aus den restlichen, aktiven Lanes in den Puffer geschrieben.
+Ist nach erneuter Zählung der aktiven Lanes die Schleifenbedingung in Zeile 10 nicht mehr erfüllt, da zu wenige Tupel existieren, um eine ausreichende Auslastung zu gewährleisten, werden die Tupel aus den restlichen, aktiven Lanes in Zeile 26 in den Puffer geschrieben.
 Schließlich wird die Pipeline mit frischen Tupeln wieder von vorne gestartet.
 
 \newpage
 
-\begin{lstlisting}[language=MyC++,
-caption=Struktur der String-Selektion mit Lane Refill,
-label=equals_lane_refill_code]
-while(!flush_pipeline) {
-
-	/* execute previous operators in the pipeline */
-	
-	// if string lengths are unequal, discard
-	if (active && data_length != search_length)
-		active = false;
-	
-	int numactive = __popc(__ballot_sync(ALL_LANES, active));
-	int bufferelements = 0;
-	
-	while(bufferelements + numactive > THRESHOLD) {
-	
-		if (numactive < THRESHOLD) {
+\begin{figure}[ht]
+	\begin{lstlisting}[language=MyC++]
+	while(!flush_pipeline) {
+		/* execute previous operators in the pipeline */
 		
-			/* refill empty lanes from buffer in case of underutilization */
-			
-			bufferelements = bufferelements - numrefill;
-		}
-		
-		// when strings don't match, inactivate the lane
-		if (active && data_content[data_id] != search_string[search_id])
+		// if string lengths are unequal, discard
+		if (active && data_length != search_length)
 			active = false;
 		
-		search_id++;
-		
-		if (search_id == search_length) {
-		
-			/* execute following operators in the pipeline */
-		
+		int numactive = __popc(__ballot_sync(ALL_LANES, active));
+		int bufferelements = 0;
+		while(bufferelements + numactive > THRESHOLD) {
+			if (numactive < THRESHOLD) {
+				/* refill empty lanes from buffer in case of underutilization */
+				
+				bufferelements = bufferelements - numrefill;
+			}
+			// when strings don't match, inactivate the lane
+			if (active && data_content[data_id] != search_string[search_id])
+				active = false;
+			
+			if (++search_id == search_length) {
+				/* execute following operators in the pipeline */
+			}
+			numactive = __popc(__ballot_sync(ALL_LANES, active));
 		}
-		
-		numactive = __popc(__ballot_sync(ALL_LANES, active));
+		if (numactive > 0) {
+			/* flush active lanes to buffer */
+			
+			bufferelements += numactive;
+			active = false;
+		}
+		loop_var += step;
 	}
-		
-	if (numactive > 0) {
-	
-		/* flush active lanes to buffer */
-		
-		bufferelements += numactive;
-		active = false;
-	}
-	
-	loop_var += step;
-}
-\end{lstlisting}
+	\end{lstlisting}
+	\caption{Struktur der String-Selektion mit Lane Refill}
+	\label{equals_lane_refill_code}
+\end{figure}
 
 \section{Technische Umsetzung der Pufferung}
 \label{sec:equals_lane_refill_pufferung}
@@ -189,27 +178,29 @@ In einem Feld wird die Position des untersuchten Strings gespeichert (\texttt{cu
 Da der Shared Memory immer auf dem Level eines ganzen Blocks gültig ist, muss dieser so viele Elemente fassen können wie es Threads pro Block gibt.
 Eine ausführliche Version der Umsetzung befindet sich in Anhang \ref{apx:equals_lane_refill}, hier sollen aber dennoch die Techniken zum Zwischenspeichern und Laden von Elementen kurz beschrieben werden.
 
-\begin{lstlisting}[language=MyC++,
-caption=Befüllen inaktiver Lanes mit Elementen aus dem Puffer,
-label=refill_code]
-if (numactive < THRESHOLD) {
-	numRefill = min(32 - numactive, bufferelements);
-	numRemaining = bufferelements - numRefill;
-	
-	previous_inactive = __popc(~__ballot_sync(ALL_LANES, active) & prefixlanes);
-	
-	if (!active && previous_inactive < bufferelements) {
-		buf_ix = numRemaining + previous_inactive + bufferbase;
-		search_id = search_id_divergence_buffer[buf_ix];
-		current = current_divergence_buffer[buf_ix];
-		active = true;
+\begin{figure}[ht]
+	\begin{lstlisting}[language=MyC++]
+	if (numactive < THRESHOLD) {
+		numRefill = min(32 - numactive, bufferelements);
+		numRemaining = bufferelements - numRefill;
+		
+		previous_inactive = __popc(~__ballot_sync(ALL_LANES, active) & prefixlanes);
+		
+		if (!active && previous_inactive < bufferelements) {
+			buf_ix = numRemaining + previous_inactive + bufferbase;
+			search_id = search_id_divergence_buffer[buf_ix];
+			current = current_divergence_buffer[buf_ix];
+			active = true;
+		}
+		
+		bufferelements -= numRefill;
 	}
-	
-	bufferelements -= numRefill;
-}
-\end{lstlisting}
+	\end{lstlisting}
+	\caption{Befüllen inaktiver Lanes mit Elementen aus dem Puffer}
+	\label{refill_code}
+\end{figure}
 
-Bei dem in Listing \ref{refill_code} dargestellten Befüllen von leer gelaufenen Lanes mit Elementen aus dem Puffer, bleiben die noch aktiven Lanes unberührt.
+Bei dem in Abbildung \ref{refill_code} dargestellten Befüllen von leer gelaufenen Lanes mit Elementen aus dem Puffer, bleiben die noch aktiven Lanes unberührt.
 Die inaktiven Lanes müssen zunächst beurteilen, ob diese berechtigt sind, sich ein Tupel aus dem Puffer zuzuweisen.
 Befinden sich beispielsweise zwei Elemente im Puffer, es gibt aber drei inaktive Lanes, dann erhalten die zwei Lanes mit dem niedrigeren Index ein neues Tupel und die Lane mit höherem Index bleibt weiter inaktiv.
 Als erstes muss also bestimmt werden, wie viele Lanes vor der betrachteten Lane inaktiv sind.
@@ -291,24 +282,26 @@ Da der Puffer grundsätzlich von rechts abgearbeitet wird, muss noch der Wert \t
 
 Ist der Index berechnet, können der String und der Suchindex innerhalb des Strings aus dem Puffer geladen werden und die Lane wieder aktiv geschaltet werden.
 
-\begin{lstlisting}[language=MyC++,
-caption={Auslagern übriger, aktiver Lanes in den Puffer},
-label=flush_code]
-if (numactive > 0) {
-	previous_active = __popc(__ballot_sync(ALL_LANES, active) & prefixlanes);
-	buf_ix = bufferbase + bufferelements + previous_active;
-	
-	if(active) {
-		search_id_divergence_buffer[buf_ix] = character_index;
-		current_divergence_buffer[buf_ix] = current;
+\begin{figure}[ht]
+	\begin{lstlisting}[language=MyC++]
+	if (numactive > 0) {
+		previous_active = __popc(__ballot_sync(ALL_LANES, active) & prefixlanes);
+		buf_ix = bufferbase + bufferelements + previous_active;
+		
+		if(active) {
+			search_id_divergence_buffer[buf_ix] = character_index;
+			current_divergence_buffer[buf_ix] = current;
+		}
+		
+		bufferelements += numactive;
+		active = false;
 	}
-	
-	bufferelements += numactive;
-	active = false;
-}
-\end{lstlisting}
+	\end{lstlisting}
+	\caption{Auslagern übriger, aktiver Lanes in den Puffer}
+	\label{flush_code}
+\end{figure}
 
-Das in Listing \ref{flush_code} dargestellte Verfahren zum Einlagern übriger, aktiver Lanes in den Puffer funktioniert ähnlich wie das wieder befüllen von Lanes.
+Das in Abbildung \ref{flush_code} dargestellte Verfahren zum Einlagern übriger, aktiver Lanes in den Puffer funktioniert ähnlich wie das wieder befüllen von Lanes.
 Zunächst wird wieder der Index berechnet, auf den die aktuelle Lane im Puffer zugreifen kann, was identisch zu dem in Abbildung \ref{fig:buffer_index} dargestellten Verfahren funktioniert, nur dass in diesem Falle die aktiven Lanes statt der inaktiven Lanes als Offset verwendet werden.
 Alle verbleibenden, aktiven Lanes speichern daraufhin die Position ihres vorher untersuchten Strings und den als nächstes zu untersuchenden Index innerhalb des Strings im Puffer ab.
 Schließlich wird noch die Anzahl der Elemente im Puffer erhöht und der Algorithmus kann anschließend wie gehabt verfahren.
@@ -318,36 +311,9 @@ Schließlich wird noch die Anzahl der Elemente im Puffer erhöht und der Algorit
 
 Ein Nachteil dieses Verfahrens liegt darin, dass durch das Verwalten des Puffers ein erhöhter Overhead entsteht, der die bessere Performanz durch eine gute Auslastung der GPU überschatten könnte.
 Um diesen Overhead zu verringern, könnte es sinnvoll sein in größerem Zeitabstand die Auslastung zu überprüfen und entsprechend Lanes neu zu befüllen.
-Um dies zu erreichen, muss wie in Listing \ref{unroll_code} lediglich der Zeichen-Vergleich in einer kurzen Schleife laufen, sodass dieser ohne Unterbrechung einige male nacheinander ausgeführt wird.
+Um dies zu erreichen, muss lediglich der Zeichen-Vergleich in einer kurzen Schleife laufen, sodass dieser ohne Unterbrechung einige male nacheinander ausgeführt wird.
 Dabei muss natürlich nach jeder Überprüfung auch geschaut werden, ob der String bereits fertig durchlaufen wurde, damit gegebenenfalls die Folgeoperationen in der Pipeline ausgeführt werden können.
 Durch das Schlüsselwort \texttt{\#pragma unroll}, ersetzt der Präprozessor die einfache Schleife durch Duplikate des Codes, wodurch eine weitere, kleine Leistungssteigerung erreicht wird.
-
-\begin{lstlisting}[language=MyC++,
-caption={Reduzierung des Overheads des Verfahrens},
-label=unroll_code]
-#pragma unroll
-for (int u = 0; u < ITERATION_COUNT; u++) {
-	int data_id = search_id + char_offset[current];
-	
-	// when strings don't match, inactivate the lane
-	if (active && data_content[data_id] != search_string[search_id])
-		active = false;
-	
-	search_id++;
-	
-	if (search_id == search_length)
-		break;
-}
-	
-if (search_id == search_length) {
-
-	/* execute following operators in the pipeline */
-	
-	active = false;
-}
-\end{lstlisting}
-
-\newpage
 
 Die in diesem Kapitel vorgestellte Technik zur Verbesserung der Leistungsfähigkeit des einfachen String-Vergleichs liefert einen vielversprechenden Ansatz, um die Ausführung von String-Operationen in Pipelining-Umgebungen auf Grafikkarten effizient zu gestalten, ohne dabei auf Dictionaries zurückgreifen zu müssen.
 Ob dieses Verfahren die gewünschten Leistungsziele erreichen kann, wird in Kapitel \ref{sec:equals_evaluation} anhand einiger praktischer Anwendungsszenarien ermittelt werden.

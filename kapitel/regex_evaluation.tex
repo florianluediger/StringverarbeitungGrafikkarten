@@ -253,6 +253,8 @@ Die geringe Laufzeit für eine niedrige Anzahl von Matches ist darin begründet,
 Für das Durchlaufen eines Automaten bedeutet dies, dass dieser in einen Fehlerzustand gerät und die Lane inaktiv wird und der \emph{LIKE}-Operator verhält sich in diesem Fall wie der einfache Präfixtest.
 Dadurch, dass viele Zeichenketten vorzeitig verworfen werden, ist bei den Basisalgorithmen die Wahrscheinlichkeit geringer, dass in einem Warp ein Match vorhanden ist und somit der Warp nicht vollständig abgearbeitet werden muss.
 Innerhalb der durch das Lane Refill intern gepufferten Operationen ist für geringe Selektivitäten die Anzahl der Matches pro Warp niedriger, weshalb öfter dynamisch Tupel nachgeladen werden können als für hohe Selektivitäten.
+Für eine besonders geringe Anzahl von Matches erreicht das Lane Refill allerdings nicht die optimale Verbesserung, wie in Abbildung \ref{fig:regex_dblpANY_buffer} zu erkennen ist.
+Dies liegt daran, dass in diesem Bereich nur vereinzelte Warps überhaupt Tupel verarbeiten müssen, die einen Match darstellen, weshalb wiederum keine große Unterauslastung auftritt, die durch das Lane Refill beseitigt werden könnte.
 
 Für die Basisalgorithmen kann beobachtet werden, dass die mächtigen Verfahren zum regulären Musterabgleich eine weitaus geringere Performanz bieten als die funktionsärmeren Präfix- oder \emph{LIKE}-Operationen.
 Dies kann damit begründet werden, dass das Durchlaufen eines Automaten mehr Instruktionen und Speicherzugriffe erfordert, als das einfache Vergleichen zweier Zeichen wie es bei den simpleren Operationen durchgeführt wird.

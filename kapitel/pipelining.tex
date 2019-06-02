@@ -1,15 +1,16 @@
-\chapter{Compiled Query Pipelines}
+\chapter{Kompilierte Anfragepipelines}
 \label{sec:pipelining}
 
 In dieser Arbeit werden String-Vergleiche im Kontext des Query Compilers \emph{DogQC} für GPUs untersucht.
 Dieser basiert auf dem Query Compiler \emph{HorseQC} \cite{Funke2018} und wurde für das erleichterte testen von aktuellen Techniken vereinfacht.
-DogQC erstellt aus einem gegebenen Anfrageplan eine Query Pipeline, die für die Ausführung auf GPUs optimiert ist.
+DogQC erstellt aus einem gegebenen Anfrageplan mehrere Query Pipelines, die für die Ausführung auf GPUs optimiert sind.
 Als Grundlage für die späteren Codebeispiele, wird hier die grundsätzliche Funktionsweise des Query Compilers erklärt und die Vorteile dieser Technik erläutert.
 
-Klassische in-memory Datenbanken wie \emph{MonetDB} arbeiten die Operatoren innerhalb eines Anfrageplans nacheinander ab, was auch \emph{Operator At A Time} genannt wird.
+Klassische in-memory Datenbanken wie \emph{MonetDB} arbeiten die Operatoren innerhalb eines Anfrageplans nacheinander ab, was auch \emph{Operator-At-A-Time} genannt wird \cite{Varga2018}.
 Dabei wird für den gesamten Datensatz zunächst der erste Operator vollständig ausgeführt, bevor der gesamte Datensatz an den nächsten Operator weiter gegeben wird, bis schließlich der gesamte Anfrageplan abgearbeitet wurde.
 Der Nachteil dieser Strategie besteht in einer besonders hohen Lese- und Schreiblast für die Zwischenergebnisse der Operatoren, da diese nach jeder Operation im Speicher materialisiert werden müssen.
-Reicht der begrenzte GPU-Speicher nicht aus, um die Zwischenergebnisse zu speichern, werden während der Berechnung Transfers in den Hauptspeicher des Systems notwendig, um neue Blöcke der Tabelle nachzuladen.
+Soll die Berechnung auf einer GPU erfolgen, kann es passieren, dass der begrenzte GPU-Speicher nicht ausreicht, um die Zwischenergebnisse zu speichern.
+Somit werden während der Berechnung Transfers in den Hauptspeicher des Systems notwendig, um neue Blöcke der Tabelle nachzuladen.
 Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 
 \begin{figure}[ht]
@@ -53,6 +54,11 @@ Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 		
 		\draw[thick, dashed, rounded corners=0.2cm]
 		(r1) -- (r2) -- (r3) -- (r4) -- (r5) -- (r6) -- (r7) -- cycle;
+		
+		\node [above left = 1cm and 0cm of select_id] (ht_build) {HT build};
+		\coordinate [below left = 0.2cm and 0.6cm of join] (ht_build_arrow_end);
+		
+		\draw [thick,->] (ht_build) -- (ht_build_arrow_end);
 				
 	\end{tikzpicture}
 	\caption{Beispielplan mit eingezeichneten Pipelines}
@@ -60,14 +66,19 @@ Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 \end{figure}
 
 Das Pipelining-Prinzip, welches bei dem vorgestellten Query Compiler zum Einsatz kommt, besagt, dass der Anfrageplan in Pipelines aufgeteilt wird, welche von den Tupeln immer vollständig durchlaufen werden, bevor das Ergebnis materialisiert wird.
-Dieses Vorgehen wird \emph{Tuple At A Time} genannt.
+Dieses Vorgehen wird \emph{Tuple-At-A-Time} genannt.
 Die Operatoren innerhalb des Anfrageplans aus Abbildung \ref{pipeline_example_plan} werden zu zwei Pipelines zusammengefasst.
 In der linken Pipeline wird die \textsf{dates}-Relation gelesen, die Selektion ausgeführt und die Hashtabelle für den Join berechnet.
 Die rechte Pipeline fasst das Lesen der \textsf{orders}-Relation, die Selektion, die Probe-Operation der Hashtabelle und das Zählen der Ergebnisse zusammen.
 Technisch werden die Operationen innerhalb der Pipeline zu einem einzigen Operator verschmolzen, indem der Query Compiler für jede Pipeline einen eigenständigen Kernel generiert, welcher mit der CUDA-Schnittstelle ausgeführt werden kann.
 Der Vorteil des Pipelinings besteht drain, dass die Ergebnisse jedes Operators nicht immer wieder im Speicher materialisiert werden müssen, sondern die einzelnen Tupel stets in den GPU-Registern vorgehalten werden können, bis diese fertig verarbeitet wurden.
 
-In Listing \ref{pipelining_example_code} wird der Code vorgestellt, welcher von dem Query Compiler für die rechte Pipeline aus dem in Abbildung \ref{pipeline_example_plan} dargestellten Anfrageplan generiert wurde.
+Klassische \emph{Tuple-At-A-Time}-Ausführungsmuster wie das \emph{Volcano Iterator Model} definieren Operatoren als eigenständige Bausteine mit fest definierten Schnittstellen, die von den Tupeln nacheinander durchlaufen werden \cite{Graefe1994}.
+Im Gegensatz dazu werden die Operatoren bei kompilierten Anfragepipelines zu einem Operator verschmolzen, wodurch Funktionsaufrufe entfallen und die Tupel in einem \emph{tight loop} \cite{Neumann2011} verarbeitet werden.
+
+Der Unterschied zwischen kompilierten Anfragepipelines und klassischen \emph{Tuple-At-A-Time}-Ausführungsmustern wie dem \emph{Volcano Iterator Model} liegt darin, dass hier alle , bei dem die einzelnen Operatoren eigenständige Bausteine mit fest definierten Schnittstellen sind, die von den Tupeln nacheinander durchlaufen werden \cite{Graefe1994}.
+
+In Abbildung \ref{pipelining_example_code} wird der Code vorgestellt, welcher von dem Query Compiler für die rechte Pipeline aus dem in Abbildung \ref{pipeline_example_plan} dargestellten Anfrageplan generiert wurde.
 Hier ist zu erkennen, dass die drei Operationen innerhalb eines Kernels zusammengefasst wurden, wodurch eine Pipeline entsteht.
 Um jedem Thread eine Menge von Tupeln zuweisen zu können, wird zunächst der globale Index des aktuellen Threads innerhalb des Grids berechnet, damit dieser als Schleifenindex \texttt{loop\_var} verwendet werden kann.
 Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
@@ -84,72 +95,76 @@ Diese Anzahl wird daraufhin vom ersten Thread innerhalb des Warps auf das Ergebn
 Nach der Durchführung der gesamten Pipeline von Operationen für das untersuchte Tupel wird der Index erhöht, sodass im nächsten Schleifendurchlauf das nächste Tupel untersucht wird.
 Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle Thread seine Arbeit vollständig abgeschlossen und er wird nicht mehr benötigt, sodass die \texttt{active}-Variable in Zeile 20 auf \texttt{false} gesetzt wird.
 Wird anschließend mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
+Das parallele Abarbeiten eines Warps und das Synchronhalten aller Lanes wird \emph{warp synchronous programming} genannt \cite{Lin2018}.
 
-\begin{lstlisting}[language=MyC++,
-caption=Generierter Kernel für den Beispielplan,
-label=pipelining_example_code,
-linebackgroundcolor={%
-\ifnum\value{lstnumber}>24
-	\ifnum\value{lstnumber}<28
-		\color{red!25}
+\begin{figure}[ht]
+	\begin{lstlisting}[language=MyC++,
+	linebackgroundcolor={%
+	\ifnum\value{lstnumber}>24
+		\ifnum\value{lstnumber}<28
+			\color{red!25}
+		\fi
 	\fi
-\fi
-\ifnum\value{lstnumber}>28
-	\ifnum\value{lstnumber}<33
-		\color{green!25}
+	\ifnum\value{lstnumber}>28
+		\ifnum\value{lstnumber}<33
+			\color{green!25}
+		\fi
 	\fi
-\fi
-\ifnum\value{lstnumber}>33
-	\ifnum\value{lstnumber}<38
-		\color{yellow!25}
+	\ifnum\value{lstnumber}>33
+		\ifnum\value{lstnumber}<38
+			\color{yellow!25}
+		\fi
 	\fi
-\fi
-}]
-__global__
-void joinProbePipeline(
-	int *orders_prio,              	// priority attribute of orders table
-	int *orders_date,               // date attribute of orders table
-	unique_ht *hashtable_date_key,  // hashtable from other pipeline
-	int *number_of_matches) {       // return value
-	
-	// global index of the current thread,
-	// used as the iterator in this case
-	unsigned loop_var = ((blockIdx.x * blockDim.x) + threadIdx.x);
-	
-	// offset for the next element to be computed
-	unsigned step = (blockDim.x * gridDim.x);
-	
-	bool active = true;
-	bool flush_pipeline = false;
-	while(!flush_pipeline) {
-	
-		// element index must not be higher than number of tuples
-		active = loop_var < TUPLE_COUNT_ORDERS;
+	}]
+	__global__
+	void joinProbePipeline(
+		int *orders_prio,              	// priority attribute of orders table
+		int *orders_date,               // date attribute of orders table
+		unique_ht *hashtable_date_key,  // hashtable from other pipeline
+		int *number_of_matches) {       // return value
 		
-		// break computation when every line is finished and therefore inactive
-		flush_pipeline = !__ballot_sync(ALL_LANES, active);
+		// global index of the current thread,
+		// used as the iterator in this case
+		unsigned loop_var = ((blockIdx.x * blockDim.x) + threadIdx.x);
 		
-		// selection
-		if (active)
-			active = orders_prio[loop_var] == 1;
+		// offset for the next element to be computed
+		unsigned step = (blockDim.x * gridDim.x);
 		
-		// hash join probe
-		if (active)
-			active = hashProbeUnique(hashtable_date_key, HASHTABLE_SIZE, 
-				hash(orders_date[loop_var]))
+		bool active = true;
+		bool flush_pipeline = false;
+		while(!flush_pipeline) {
 		
-		// count and write
-		numProj = __popc(__ballot_sync(ALL_LANES, active))
-		if (threadIdx.x % 32 == 0)
-			atomicAdd(number_of_matches, numProj);
-		
-		loop_var += step;
+			// element index must not be higher than number of tuples
+			active = loop_var < TUPLE_COUNT_ORDERS;
+			
+			// break computation when every line is finished and therefore inactive
+			flush_pipeline = !__ballot_sync(ALL_LANES, active);
+			
+			// selection
+			if (active)
+				active = orders_prio[loop_var] == 1;
+			
+			// hash join probe
+			if (active)
+				active = hashProbeUnique(hashtable_date_key, HASHTABLE_SIZE, 
+					hash(orders_date[loop_var]))
+			
+			// count and write
+			numProj = __popc(__ballot_sync(ALL_LANES, active))
+			if (threadIdx.x % 32 == 0)
+				atomicAdd(number_of_matches, numProj);
+			
+			loop_var += step;
+		}
 	}
-}
-\end{lstlisting}
+	
+	\end{lstlisting}
+	\caption{Generierter Kernel für den Beispielplan}
+	\label{pipelining_example_code}
+\end{figure}
 
-Bei dem hier vorgestellten Verfahren der \emph{Tuple At A Time} Verarbeitung wird klar, dass dieses einen großen Vorteil bei der effizienten Nutzung von schnellem Speicher gegenüber der \emph{Operator At A Time} Verarbeitung bietet.
+Bei dem hier vorgestellten Verfahren der \emph{Tuple-At-A-Time} Verarbeitung wird klar, dass dieses einen großen Vorteil bei der effizienten Nutzung von schnellem Speicher gegenüber der \emph{Operator-At-A-Time} Verarbeitung bietet.
 Zwischenergebnisse müssen nicht mehr materialisiert werden, weshalb Tupel in Registern oder Caches vorgehalten werden können und die Operationen für das explizite Materialisieren entfallen.
-Im Gegensatz zu der \emph{Operator At A Time} Technik lässt sich das Pipelining allerdings nicht so einfach auf eine parallele Verarbeitung mit GPUs übertragen.
+Im Gegensatz zu der \emph{Operator-At-A-Time} Technik lässt sich das Pipelining allerdings nicht so einfach auf eine parallele Verarbeitung mit GPUs übertragen.
 Wird jedem Thread in einem Warp ein Tupel übergeben, kann es passieren, dass bei beispielsweise einer Selektion dieses Tupel aus der Ergebnisrelation heraus fällt, somit im weiteren Verlauf nicht weiter beachtet werden muss und die entsprechende Lane inaktiv wird.
 Dieses Problem wird in Kapitel \ref{sec:unterauslastung_problem} aufgegriffen und in Kapitel \ref{sec:equals_lane_refill} wird ein Lösungsvorschlag dafür vorgestellt.

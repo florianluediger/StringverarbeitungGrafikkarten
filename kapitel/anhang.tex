@@ -80,6 +80,99 @@ while(!flush_pipeline) {
 }
 \end{lstlisting}
 
+\chapter{Umsetzung des Musterabgleichs mit Lane Refill}
+\label{apx:regex_lane_refill}
+
+\begin{lstlisting}[language=MyC++,
+caption=Umsetzung des parallelen Musterabgleichs mit Lane Refill]
+// shared memory for the divergence buffers
+__shared__ char* p_divergence_buffer[BLOCK_SIZE];
+__shared__ char* pe_divergence_buffer[BLOCK_SIZE];
+__shared__ int cs_divergence_buffer[BLOCK_SIZE];
+
+unsigned warpid = (threadIdx.x / 32);
+unsigned bufferbase = (warpid * 32);
+unsigned warplane = (threadIdx.x % 32);
+unsigned prefixlanes = (0xffffffff >> (32 - warplane));
+unsigned bufferelements = 0;
+
+while (!flush_pipeline) {
+
+	/* execute previous operators in the pipeline */
+	
+	char *p = book_content + character_offset[loop_var];
+	char *pe = book_content + character_offset[loop_var + 1];
+	
+	int cs = machine_start;
+	
+	// if end of string is reached, inactivate the lane
+	if (p == pe)
+		active = false;
+	
+	int numactive = __popc(__ballot_sync(ALL_LANES, active));
+	while(bufferelements + numactive > THRESHOLD) {
+	
+		// refill empty lanes from buffer in case of underutilization
+		if (numactive < THRESHOLD) {
+			numRefill = min(32 - numactive, bufferelements);
+			numRemaining = bufferelements - numRefill;
+			
+			previous_inactive = __popc(~__ballot_sync(ALL_LANES, active) & prefixlanes);
+			
+			if (!active && previous_inactive < bufferelements) {
+				buf_ix = numRemaining + previous_inactive + bufferbase;
+				p = p_divergence_buffer[buf_ix];
+				pe = pe_divergence_buffer[buf_ix];
+				cs = cs_divergence_buffer[buf_ix];
+				active = true;
+			}
+			
+			bufferelements -= numRefill;
+		}
+		
+		if (active) {
+			cs = singleDfaStep(cs, p);
+			
+			if (cs == 0 && !STARTS_WITH_ANY)		// invalid state reached
+				active = false;
+		}
+		
+		p++;
+		
+		if (active && p == pe) {		// string completely processed
+			if (cs >= machine_first_final) {    // finishes with accepting state
+			
+				/* execute following operators in the pipeline */
+			
+			} else {    // finishes with non accepting state
+				active = false;
+			}
+		}
+		
+		numactive = __popc(__ballot_sync(ALL_LANES, active));
+	}
+	
+	// flush active lanes to buffer
+	if (numactive > 0) {
+		previous_active = __popc(activemask & prefixlanes);
+		buf_ix = bufferbase + bufferelements + previous_active;
+		
+		if(active) {
+			p_divergence_buffer[buf_ix] = p;
+			pe_divergence_buffer[buf_ix] = pe;
+			cs_divergence_buffer[buf_ix] = cs;
+		}
+		
+		bufferelements += numactive;
+		active = false;
+	}
+	
+	loop_var += step;
+}
+\end{lstlisting}
+
+
+
 \chapter{Laufzeiten für alternative Selektivität des Type-Datensatzes}
 \label{apx:parameter64}
 
