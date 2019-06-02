@@ -1,9 +1,9 @@
 \chapter{Grundlagen der GPU-Programmierung}
 
-Um die in dieser Arbeit vorgestellten Herausforderungen bei der Verarbeitung von String-Daten mit Grafikprozessoren, nachfolgend auch \emph{GPUs} genannt, verstehen zu können, ist zunächst ein Verständnis der grundlegenden Eigenschaften aktueller Hardware nötig.
-Dabei beschränkt sich diese Untersuchung auf die Grafikkarten-Serie Maxwell von NVIDIA, die hier besprochenen Prinzipien lassen sich allerdings auch auf die GPUs anderer Hersteller übertragen und finden dort ebenfalls Anwendung.
+Um die in dieser Arbeit vorgestellten Herausforderungen bei der Verarbeitung von Zeichenketten(\emph{Strings}) mit Grafikprozessoren, nachfolgend auch \emph{GPUs} genannt, verstehen zu können, ist zunächst ein Verständnis der grundlegenden Eigenschaften aktueller Hardware nötig.
+Dabei beschränkt sich diese Untersuchung auf die Grafikkarten-Serie Maxwell von Nvidia, die hier besprochenen Prinzipien lassen sich allerdings auch auf die GPUs anderer Hersteller übertragen und finden dort ebenfalls Anwendung.
 
-\section{Grundaufbau einer NVIDIA-Grafikkarte}
+\section{Grundaufbau einer Nvidia-Grafikkarte}
 
 Der Hauptprozessor eines Computers, auch \emph{Central Processing Unit (CPU)} genannt, arbeitet eher sequenziell schwerwiegende Threads ab, wodurch individuelle Operationen schnell abgearbeitet werden können, ein hoher Durchsatz allerdings schwierig zu erreichen ist.
 Für die Verarbeitung großer Datenmengen wurden daher spezielle Co-Prozessoren in Form von Grafikkarten entwickelt, die hochgradig parallel arbeiten und somit einen massiven Durchsatz erreichen können.
@@ -12,7 +12,7 @@ Sie besteht aus einer hohen Anzahl an Kernen, die zwar individuell eine vergleic
 
 Neben der GPU benötigt eine Grafikkarte noch weitere Peripherie, um effizient funktionieren zu können.
 Zur Speicherung der zu verarbeitenden Daten gibt es eigenständige Speichermodule, die unabhängig vom Hauptspeicher des Computers verwaltet werden.
-Für die NVIDIA GTX 950, welche im Folgenden als Beispiel genutzt werden soll, beträgt die Größe dieses Speichers 2 GB.
+Für die Nvidia GTX 950, welche im Folgenden als Beispiel genutzt werden soll, beträgt die Größe dieses Speichers 2 GB.
 Über eine PCI-Express-Anbindung wird die Kommunikation mit dem Hauptprozessor und die Übertragung der Daten zwischen den Speicherbereichen realisiert.
 
 \begin{figure}[ht]
@@ -24,60 +24,59 @@ Für die NVIDIA GTX 950, welche im Folgenden als Beispiel genutzt werden soll, b
 Wie in Abbildung \ref{gpu_architecture} dargestellt, lässt sich die GPU wiederum in kleinere Module, sogenannte \emph{Streaming Multiprocessors (SM)}, unterteilen, welche jeweils eigenständige Recheneinheiten darstellen.
 Eine GTX 950 besitzt beispielsweise sechs dieser Streaming Multiprocessors, welche sich ebenfalls in kleinere Einheiten unterteilen lassen.
 Die SM bestehen aus vier unabhängigen Blöcken von Rechenkernen, welche jeweils 32 skalare Recheneinheiten, auch \emph{CUDA-Kerne} genannt, beinhalten.
-Jeder dieser Blöcke besitzt einen eigenen Scheduler und einige Unterstützungselektronik, sodass diese logisch gesehen ebenfalls unabhängig voneinander arbeiten können \cite{Nvidia2014}.
-Bei sechs Streaming Multiprocessors mit jeweils vier Blöcken und 32 Recheneinheiten pro Block besitzt die GT X950 also 768 Kerne, welche über eine Programmierschnittstelle angesprochen werden können.
+Jeder dieser Blöcke besitzt einen eigenen Scheduler und etwas Unterstützungselektronik, sodass diese logisch gesehen ebenfalls unabhängig voneinander arbeiten können \cite{Nvidia2014}.
+Bei sechs SMs mit jeweils vier Blöcken und 32 Recheneinheiten pro Block besitzt die GTX 950 also 768 Kerne, welche über eine Programmierschnittstelle angesprochen werden können.
 
 \section{Scheduling auf GPUs}
 \label{sec:cuda_scheduling}
 
 Um die hohe Anzahl von Kernen innerhalb einer GPU effizient mit Arbeit versorgen zu können, ist es wegen des großen Overheads nicht praktikabel, ein individuelles Scheduling für die einzelnen Recheneinheiten durchzuführen.
 Aus diesem Grund werden die Threads eines Programms in sogenannte \emph{Warps} zusammengefasst, welche damit die kleinste Einheit für das Scheduling bilden.
-Ein Warp enthält dabei genau 32 Threads, welche in diesem Kontext auch \emph{Lanes} genannt werden.
+Ein Warp enthält dabei genau 32 Threads, die in diesem Kontext auch \emph{Lanes} genannt werden.
 Mehrere Warps werden außerdem zu \emph{Blöcken} zusammengefasst, welche schließlich als Ganzes an einzelne Streaming Multiprocessors zugewiesen werden.
-Innerhalb eines SM werden Warps ausgetauscht, wenn der vorher aktive Warp beispielsweise auf einen Speicherzugriff wartet, um die dadurch entstehende Latenz zu verstecken.
+Innerhalb eines SM können Warps ausgetauscht werden, um beispielsweise durch Speicherzugriffe entstehende Latenzen zu verstecken.
 
 Über die Anzahl der Threads pro Block und die gesamte Anzahl der Blöcke ist die Konfiguration des sogenannten \emph{Grids} definiert.
 Die Grid-Konfiguration nimmt starken Einfluss auf die Ausführungszeit der Software.
 Beispielsweise kann eine zu geringe Anzahl von Threads pro Block dazu führen, dass eventuell durch Speicherzugriffe entstehende Latenzen nicht mehr so gut versteckt werden können, da nicht genug Threads innerhalb eines SM vorhanden sind.
 Eine zu hohe Anzahl von Threads pro Block kann allerdings auch von Nachteil sein, da Hardwareressourcen wie die Speichergröße pro SM gegebenenfalls nicht mehr ausreichen und das Programm nicht mehr korrekt funktioniert.
-Das Finden der richtigen Parameter gestaltet sich als äußerst schwierig, da die verwendete Hardware ein komplexes Konstrukt mit vielen Faktoren bildet, die auf Änderungen des Grids Einfluss nehmen \cite{Wong2010}.
+Das Finden der richtigen Parameter gestaltet sich als äußerst schwierig, da die verwendete Hardware ein komplexes Konstrukt mit vielen Faktoren bildet, die unterschiedlich und schwer vorhersagbar auf Änderungen des Grids reagieren \cite{Wong2010}.
 
 Eine für die Programmierung von GPUs entscheidende Eigenschaft besteht darin, dass die Threads innerhalb eines Warps parallel ausgeführt werden.
 Ähnlich wie bei dem Prinzip \emph{Single Instruction Multiple Data (SIMD)} \cite{Pohl2016}, führen die Threads in einem Warp die Instruktionen synchron aus, sodass dieses Prinzip auch \emph{Single Instruction Multiple Threads (SIMT)} genannt wird.
-Die Trennung in mehrere Threads bietet hierbei den Vorteil, dass eigene Register angesprochen werden können, an unterschiedlichen Stellen im Speicher gelesen werden kann und Threads verschiedene Kontrollflüsse verfolgen können.
-Prozesse laufen außerdem zwar logisch parallel ab, allerdings muss dies nicht notwendigerweise physikalisch auch so sein, sodass in einigen Fällen eine höhere Leistung erzielt werden kann.
+Die Trennung in mehrere Threads bietet hierbei den Vorteil, dass eigene Register angesprochen werden können, an unterschiedlichen Stellen im Speicher gelesen werden kann und die Kontrollflüsse der Threads leicht divergieren können.
+Prozesse laufen außerdem zwar logisch parallel ab, allerdings muss dies nicht notwendigerweise physisch auch so sein, sodass in einigen Fällen eine höhere Leistung erzielt werden kann.
 Für die optimale Performanz einzelner Operationen sollte allerdings gewährleistet sein, dass die Threads größtenteils synchron ausgeführt werden.
 
 Bei der Verwendung von Branching-Instruktionen kann es vorkommen, dass unterschiedliche Threads verschiedene Kontrollflüsse durchlaufen, was auch als \emph{Divergenz} bezeichnet wird.
 Da allerdings alle Threads identische Instruktionen ausführen müssen, führt dies dazu, dass sämtliche Threads in einem Warp alle notwendigen Kontrollflüsse durchlaufen und dabei gegebenenfalls das Ergebnis verwerfen, wenn diese sich logisch gesehen in einem anderen Zweig befinden.
 Alle Threads, für die der aktuell bearbeitete Kontrollfluss nicht relevant ist, werden als inaktiv bezeichnet.
-Inaktive Threads warten somit lediglich darauf, dass die aktiven Threads die Arbeit innerhalb ihres Kontrollflusses abgeschlossen haben, sodass an dieser Stelle gegebenenfalls massiv Rechenleistung verschwendet wird.
+Inaktive Threads warten somit lediglich darauf, dass die aktiven Threads die Arbeit innerhalb ihres Kontrollflusses abgeschlossen haben, sodass an dieser Stelle massiv Rechenleistung verschwendet wird.
 In dieser Problematik liegt der Grund dafür, dass die Verarbeitung von Strings auf Grafikkarten durch ihre variable Länge problematisch ist, da die auftretenden Kontrollflüsse divergieren.
 
 \section{Synchronisation von Threads}
 \label{sec:synchronisation_von_threads}
 
-Der Compiler und die GPU selbst versuchen innerhalb eines Warps die Anzahl der synchron ausgeführten Operationen zu maximieren, da dadurch eine höhere Leistung erzielt wird \cite{Nickolls2009}.
+Der Compiler und die GPU selbst versuchen, innerhalb eines Warps die Anzahl der synchron ausgeführten Operationen zu maximieren, weil dadurch eine höhere Leistung erzielt wird \cite{Nickolls2009}.
 Diese Synchronisation kann allerdings auch explizit durch den Entwickler erfolgen, indem er die dafür vorgesehenen Operationen der Entwicklungsschnittstelle verwendet.
 Das Verwenden solcher Operationen führt dazu, dass alle Threads an dieser Stelle aufeinander warten müssen.
 
 Diese Methoden können außerdem dazu verwendet werden, Informationen über die anderen Threads zu erlangen und die Zusammenarbeit innerhalb der Warps effektiver zu gestalten.
-Die Instruktionen werden von der Hardware unterstützt, sodass sie typischerweise sehr effizient ausgeführt werden können.
-Ein Beispiel für eine solche Operation ist das Auswerten eines Prädikates für alle Threads und anschließend das Erstellen einer Bitmaske, welche das Ergebnis der Auswertung für alle Threads enthält.
+Ein Beispiel für eine solche Operation ist das Auswerten eines Prädikats für alle Threads und das anschließende Erstellen einer Bitmaske, die das Ergebnis der Auswertung für alle Threads enthält.
 Ein weiteres Beispiel ist das Generieren einer Maske für alle Threads, die in dem aktuellen Ausführungszweig aktiv sind.
 Schließlich können noch alle Threads ohne besondere Berechnung synchronisiert werden.
-Dies ist zum Beispiel nötig, wenn ein Thread aus dem Speicher lesen will, den andere Threads vorher beschreiben und dieser sicherstellen will, dass die Daten fertig geschrieben wurden \cite{Lin2018}.
+Dies ist zum Beispiel nötig, wenn ein Thread aus dem Speicher lesen will, den andere Threads vorher beschreiben und sicherstellen will, dass die Daten fertig geschrieben wurden \cite{Lin2018}.
 
 \section{Shared Memory}
 
 Ein Datenaustausch zwischen Threads innerhalb eines Blocks kann über sogenannten \emph{Shared Memory} geschehen.
 Dadurch können größere Mengen von Informationen ausgetauscht werden, als dies über die Synchronisations-Operationen effizient möglich wäre.
 Dieser Speicher ist um einige Größenordnungen schneller als der globale Speicher, da sich dieser direkt auf dem Chip der GPU befindet \cite{Harris2013}.
-Die Speichergröße innerhalb eines Streaming Multiprocessors ist allerdings beschränkt, weshalb die Anzahl der Threads ebenfalls beschränkt ist, sofern eine große Menge Shared Memory von diesen benötigt wird.
+Die Speichergröße innerhalb eines Streaming Multiprocessors ist allerdings beschränkt, weshalb die Anzahl der Threads ebenfalls beschränkt ist, sofern sie eine große Menge Shared Memory benötigen.
 
 \section{Die CUDA-Programmierschnittstelle für C++}
 
-Für eine effiziente Entwicklung der hochgradig spezialisierten Grafikhardware stellt \mbox{NVIDIA} die \emph{CUDA}-Programmierschnittstelle bereit.
+Für eine effiziente Entwicklung der hochgradig spezialisierten Grafikhardware stellt \mbox{Nvidia} die \emph{CUDA}-Programmierschnittstelle bereit.
 Diese ermöglicht es, die GPU aus einer Hochsprache wie C++ heraus anzusprechen und durch verschiedene Hilfestellungen leicht ein funktionierendes Programm zu erstellen.
 Neben vordefinierten Schlüsselwörtern und Syntaxelementen bietet die Entwicklungsumgebung auch einen eigenen Compiler, welcher das erstellte Programm für den Einsatz auf der Grafikkarte optimiert.
 Für das Verständnis der Beispiele in dieser Arbeit sollen im Folgenden einige Grundkonzepte des Programmiermodells erläutert werden.
@@ -86,10 +85,10 @@ Das Hauptprogramm von CUDA-Programmen besteht aus Code für die CPU, welcher daf
 Ein solches Unterprogramm wird \emph{Kernel} genannt und besteht im einfachsten Falle aus einer einfachen Funktion, welche durch das Schlüsselwort \texttt{\_\_global\_\_} gekennzeichnet wird.
 In diesem Kontext wird der GPU-Code üblicherweise \emph{Device Code} und der CPU-Code \emph{Host Code} genannt.
 
-Auf die Schnittstellen zur Speicherverwaltung oder zur Festlegung der Grid-Konfiguration aus dem Host Code heraus soll hier nicht weiter eingegangen werden, da für die untersuchten Kriterien lediglich der Device Code interessante Aspekte bietet.
+Auf die Schnittstellen zur Speicherverwaltung oder zur Festlegung der Grid-Kon\-fi\-gu\-ra\-tion aus dem Host Code heraus soll hier nicht weiter eingegangen werden, da für die untersuchten Kriterien lediglich der Device Code interessante Aspekte bietet.
 
 Einem Kernel können verschiedene Parameter wie Zeiger auf Speicherbereiche innerhalb des Grafikspeichers aus dem Hauptprogramm übergeben werden.
-Zum Durchlaufen eines solchen Speicherbereiches in einem sequenziellen Programm wäre es ausreichend mit einem Index über das Feld zu iterieren und diesen nach jeder Iteration um eins zu erhöhen.
+Zum Durchlaufen eines solchen Speicherbereiches in einem sequenziellen Programm wäre es ausreichend, mit einem Index über das Feld zu iterieren und diesen nach jeder Iteration um eins zu erhöhen.
 Bei einer parallelen Architektur würden so allerdings sämtliche Threads über den gesamten Datensatz laufen, anstatt wie gewünscht den Datensatz auf die einzelnen Threads aufzuteilen.
 Zu diesem Zweck muss jeder Thread die Informationen darüber haben, welchen globalen Index er innerhalb des Grids hat, um mit dem entsprechenden Element aus dem Datensatz zu beginnen und wie viele Threads in dem Grid vorhanden sind, damit er den entsprechenden Abstand zu dem nächsten zu untersuchenden Element kennt.
 Innerhalb eines Kernels kann der Thread auf seinen Threadindex (\texttt{threadIdx.x}), die Anzahl der Threads in einem Block (\texttt{blockDim.x}), seinen Blockindex (\texttt{blockIdx.x}) und die Anzahl der Blöcke im Grid (\texttt{girdDim.x}) zugreifen.
