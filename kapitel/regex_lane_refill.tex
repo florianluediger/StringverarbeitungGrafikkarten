@@ -1,7 +1,7 @@
 \chapter{Verbesserung des Verfahrens zum Musterabgleich}
 
 Bei dem in Kapitel \ref{sec:regex_naiv} vorgestellten Verfahren tritt ein ähnliches Problem auf wie bei dem zuvor beschriebenen, einfachen String-Vergleich.
-Aufgrund der unterschiedlichen Struktur von Strings werden einige Lanes innerhalb eines Warps früher als andere Lanes inaktiv wenn sie einen Fehlerzustand oder das Ende des Eingabestrings erreicht haben.
+Aufgrund der unterschiedlichen Struktur von Strings werden einige Lanes innerhalb eines Warps früher als andere Lanes inaktiv dadurch, dass sie einen Fehlerzustand oder das Ende des Eingabestrings erreicht haben.
 Dies hat eine Unterauslastung des Warps zur Folge, wodurch Rechenleistung verschwendet wird.
 Aus diesem Grund ist es wünschenswert den inaktiv gewordenen Threads dynamisch neue Arbeit zuzuweisen.
 Dazu wird das in Kapitel \ref{sec:equals_lane_refill} vorgestellte Lane Refill-Verfahren zum Einsatz kommen, wodurch im Rahmen der kompilierten Anfragepipelines die Laufzeit optimiert werden kann.

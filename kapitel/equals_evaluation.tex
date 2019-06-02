@@ -2,7 +2,7 @@
 \label{sec:equals_evaluation}
 
 In Kapitel \ref{sec:equals_lane_refill} wurde eine Technik vorgestellt, von der zu erwarten ist, dass sie die Laufzeit des einfachen String-Vergleichs verbessert, indem die Ressourcen der GPU besser genutzt werden und somit eine erhöhte Auslastung erreicht wird.
-Da diese Technik allerdings einen gewissen Overhead mit sich bringt, bleibt es noch zu untersuchen, ob diese Technik tatsächlich eine bessere Laufzeit erzielt, oder ob der Mehraufwand so groß ist, dass die erreichten Vorteile von diesem überschattet werden.
+Da diese Technik allerdings einen gewissen Overhead mit sich bringt, bleibt noch zu untersuchen, ob diese Technik tatsächlich eine bessere Laufzeit erzielt, oder ob der Mehraufwand so groß ist, dass die erreichten Vorteile von diesem überschattet werden.
 In diesem Kapitel wird diese Untersuchung anhand realer Arbeitslasten durchgeführt und außerdem überprüft, ob die in Kapitel \ref{sec:unroll} vorgestellte Reduzierung des Overheads eine weitere Leistungssteigerung mit sich bringt.
 
 \section{Testumgebung}
@@ -27,12 +27,12 @@ Hier wird eine Selektion über die \emph{Type}-Spalte durchgeführt, welche Zeic
 Diese bestehen aus den Zeichen \emph{A-Z} und dem Leerzeichen.
 Für die Untersuchung wurde ein Datensatz mit 90.000.000 Tupeln generiert.
 
-Ein weiterer Workload wurde aus dem Datensatz von DBLP\footnote{\url{https://dblp.org/}} erstellt, welcher die Titel vieler Veröffentlichungen im Informatik-Umfeld enthält.
+Ein weiterer Workload wurde aus dem Datensatz der DBLP Computer Science Bibliography\footnote{\url{https://dblp.org/}} erstellt, welcher die Titel vieler Veröffentlichungen im Informatik-Umfeld enthält.
 Dazu wurden doppelte Titel entfernt und die übrigen Strings so angepasst, dass diese nur noch Kleinbuchstaben enthalten.
-Die durchschnittliche Länge der Zeichenketten in diesem Datensatz beträgt 76 Zeichen und es wurde ein Präfix untersucht, welcher 31 Zeichen beinhaltet.
+Die durchschnittliche Länge der Zeichenketten in diesem Datensatz beträgt 76 Zeichen und es wurde ein Präfix gesucht, welcher 31 Zeichen beinhaltet.
 Der generierte Datensatz enthält schließlich 21.513.695 Tupel.
 
-Um die unterschiedlichen Selektivitäten für die folgenden Tests zu erreichen wurde ein neuer String entsprechend zufällig verteilt in den Datensatz eingebracht.
+Um die unterschiedlichen Selektivitäten für die folgenden Tests zu erreichen, wurde ein neuer String entsprechend zufällig verteilt in den Datensatz eingebracht.
 Die gewünschte Datengröße wurde schließlich erreicht, indem der so generierte Datensatz einige male vervielfacht wurde.
 
 \section{Vorstellung der Messergebnisse}
@@ -74,16 +74,16 @@ Als Vergleichsgröße wurde die Laufzeit der Algorithmen verwendet, welche ein m
 	\label{fig:type_equals}
 \end{figure}
 
-In Abbildung \ref{fig:type_equals} werden die Ergebnisse eines Tests der vorgestellten Algorithmen bei Verwendung des vorher beschriebenen \emph{Type}-Datensatz ausgewertet.
+In Abbildung \ref{fig:type_equals} werden die Ergebnisse eines Tests der vorgestellten Algorithmen bei Verwendung des vorher beschriebenen \emph{Type}-Datensatzes ausgewertet.
 Dabei werden die Laufzeiten der naiven Umsetzung mit denen der verbesserten Variante mit Lane Refill verglichen.
 Außerdem wurde in der Messung die in Kapitel \ref{sec:unroll} beschriebene Variante zur Reduzierung des Overheads berücksichtigt, welche einmal so durchgeführt wurde, dass immer zwei Zeichen pro Schritt verglichen werden und einmal in Dreierschritten.
 
 Sofort fällt auf, dass eine höhere Anzahl von Matches im Datensatz eine erhöhte Laufzeit für den Algorithmus bedeutet.
 Außerdem liegt die Laufzeit der naiven Umsetzung bedeutend höher als die der drei optimierten Varianten, welche das Lane Refill-Verfahren verwenden.
-Der Algorithmus, welcher das Lane Refill implementiert ist zwischen 43\% und 4\% schneller als die naive Implementierung.
+Der Algorithmus, welcher das Lane Refill implementiert ist zwischen 4\% und 43\% schneller als die naive Implementierung.
 Dabei entsteht der größte Vorteil bei einem geringen Anteil von passenden Elementen, welcher geringer wird, sobald der Datensatz eine höhere Anzahl von Matches enthält.
 Bis zu einem Anteil von 8\% beträgt die Verbesserung der Laufzeit, die durch das Lane Refill-Verfahren erreicht wurde mehr als 50\%.
-Es ist außerdem zu erkennen, dass die Laufzeit der beiden Varianten, welche die Reduzierung des Overheads erzielen sollten, eine nahezu identische Laufzeit erreichen, wie die erste Version, welche Lane Refill verwendet.
+Es ist außerdem zu erkennen, dass die beiden Varianten, welche die Reduzierung des Overheads erzielen sollten, eine nahezu identische Laufzeit erreichen, wie die erste Version, welche Lane Refill verwendet.
 Schließlich entsteht bei der Messung ein Ausreißer bei einem Anteil passender Matches von 2\%, welcher sich durch besonders geringe Laufzeiten für alle Algorithmen auszeichnet.
 
 \subsection{Präfixtest mit dem Type-Datensatz}
@@ -114,11 +114,11 @@ Schließlich entsteht bei der Messung ein Ausreißer bei einem Anteil passender 
 \label{fig:type_prefix}
 \end{figure}
 
-Abbildung \ref{fig:type_prefix} zeigt das Ergebnis eines ähnlichen Tests wie der im letzten Abschnitt beschriebene Test, mit der Ausnahme, dass hier der in Kapitel \ref{sec:prefixtest} beschriebene Präfixtest untersucht wurde.
+Abbildung \ref{fig:type_prefix} zeigt das Ergebnis eines ähnlichen Tests wie der im letzten Abschnitt beschriebene Test, mit der Ausnahme, dass hier der in Kapitel \ref{sec:prefixtest} beschriebene Präfixtest untersucht wird.
 Der verwendete \emph{Type}-Datensatz blieb dabei unverändert, es wurden lediglich die Messungen für die Implementierung zur Reduzierung des Overheads des Lane Refill-Verfahrens ausgelassen.
 
-Wie bei dem vorherigen Benchmark ist zu erkennen, dass eine höhere Anzahl von Matches hier auch eine erhöhte Laufzeit bedeutet und dass die Laufzeiten der naiven Implementierung bedeutend über denen der durch das Lane Refill optimierten Umsetzung liegt.
-Die verbesserte Variante des Algorithmus erzielt hier eine Reduzierung der Laufzeit zwischen 43\% und 4\%, wobei auch hier die Differenz der beiden Verfahren geringer wird, wenn ein höherer Anteil von Matches im Datensatz vorhanden ist.
+Wie bei dem vorherigen Benchmark ist zu erkennen, dass eine höhere Anzahl von Matches hier auch eine erhöhte Laufzeit verursacht und dass die Laufzeiten der naiven Implementierung bedeutend über denen der durch das Lane Refill optimierten Umsetzung liegt.
+Die verbesserte Variante des Algorithmus erzielt hier eine Reduzierung der Laufzeit zwischen 4\% und 43\%, wobei auch hier die Differenz zwischen den beiden Verfahren geringer wird, wenn ein höherer Anteil von Matches im Datensatz vorhanden ist.
 Bis zu einem Anteil von 8\% zutreffender Strings im Datensatz ist der Vorteil allerdings noch höher als 30\%.
 Für einen Anteil von 2\% ist wie im vorherigen Test ebenfalls ein Ausreißer zu erkennen.
 
@@ -152,24 +152,24 @@ Für einen Anteil von 2\% ist wie im vorherigen Test ebenfalls ein Ausreißer zu
 
 In Abbildung \ref{fig:dblp_prefix} wird schließlich das Ergebnis eines Benchmarks dargestellt, welcher den Präfixtest mit dem \emph{DBLP}-Datensatz untersucht.
 Wie in den vorherigen Tests, ist zu erkennen, dass ein höherer Anteil von Matches im Datensatz eine höhere Laufzeit verursacht und dass das Einführen des Lane Refill eine deutliche Verringerung der Laufzeiten bewirkt.
-Diese Verbesserungen liegen zwischen 54\% und 3\%, wobei die größte Aufspaltung im mittleren Bereich der Selektivität liegt.
+Diese Verbesserungen liegen zwischen 3\% und 54\%, wobei die größte Aufspaltung im mittleren Bereich der Selektivität liegt.
 Zwischen 1\% und 16\% zutreffender Elemente im Datensatz beträgt die Verbesserung mehr als 30\%.
 
 \section{Diskussion der Ergebnisse}
 
 Die Ergebnisse der durchgeführten Tests lassen eindeutige Rückschlüsse auf das Verhalten der zuvor vorgestellten Verfahren für unterschiedliche Anwendungsfälle ziehen.
 Die geringeren Laufzeiten bei einer niedrigeren Anzahl von Matches lassen sich darauf zurückführen, dass viele untersuchte Strings vorzeitig verworfen werden.
-Somit ist bei der naiven Umsetzung die Anzahl der Iterationen geringer, welche tatsächlich bis zum Ende des Vergleichsstrings durchlaufen werden müssen.
+Somit ist bei der naiven Umsetzung die Wahrscheinlichkeit geringer, dass ein Warp bis zum Ende des Vergleichsstrings iterieren muss.
 Auch die verbesserte Variante profitiert davon, dass die Zeichenketten nicht vollständig durchlaufen werden müssen, sodass häufiger neue Strings nachgeladen werden können und weniger tatsächliche Arbeit zu erledigen ist.
 
 Der durchgehend erkennbare Leistungsgewinn, der durch das Lane Refill erreicht wird, lässt erkennen, dass das Erhöhen der Auslastung der Warps eine Steigerung der Performanz mit sich gebracht hat.
 Dies lässt darauf schließen, dass die Verbesserung der Auslastung einen signifikanteren Einfluss auf die Leistung hat, als der durch das Verfahren zusätzlich generierte Overhead.
-Der geringe Einfluss des Overheads lässt sich außerdem daran erkennen, dass die in Abbildung \ref{fig:type_equals} untersuchten Verbesserungen des Lane Refill-Verfahrens keine signifikante verringerung der Laufzeit erbringen.
+Der geringe Einfluss des Overheads lässt sich außerdem daran erkennen, dass die in Abbildung \ref{fig:type_equals} untersuchten Verbesserungen durch Reduzierung des Overheads des Lane Refill-Verfahrens keine signifikante Verringerung der Laufzeit erbringen.
 Die Speicherzugriffe, welche für den eigentlichen String-Vergleich durchgeführt werden müssen, haben somit einen bedeutend höheren Einfluss auf die Laufzeit als die Instruktionen, die für das Lane Refill ausgeführt werden.
 
 Ebenfalls in allen Diagrammen erkennbar ist, dass die Leistungssteigerung bei einer höheren Anzahl von Matches geringer wird, was darauf zurückzuführen ist, dass bei einem hohen Anteil zutreffender Elemente keine so starke Unterauslastung bei dem naiven Algorithmus auftritt.
 Dies liegt daran, dass in einem Warp zu jeder Zeit eine höhere Anzahl von zutreffenden Strings geprüft wird und somit die Zahl der wartenden Lanes geringer wird.
-Es lässt sich also in diesem Fall gar keine so große Verbesserung mehr durch das Einführen von Lane Refill erreichen, da keine große Unterauslastung vorhanden ist, die es zu beseitigen gilt.
+Es lässt sich also in diesem Fall gar keine so große Verbesserung mehr durch das Einführen des Lane Refill erreichen, da keine große Unterauslastung vorhanden ist, die es zu beseitigen gilt.
 
 Der Ausreißer bei einem Anteil von 2\% zutreffender Elemente im \emph{Type}-Datensatz tritt aufgrund eines Fehlers innerhalb des Datensatzes auf.
 Es wurde versucht diesen zu beheben, indem der Datensatz analysiert, überprüft und neu generiert wurde, allerdings ließ sich keine Lösung finden, welche den Ausreißer beseitigt hätte.

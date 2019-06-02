@@ -4,9 +4,9 @@ Die Ausführungszeit der in den vorherigen Kapiteln vorgestellten Algorithmen wi
 Den größten Einfluss nimmt dabei die Art des Datensatzes, also wie viele Matches er enthält, wie lang die enthaltenen Zeichenketten sind, wie viele Strings im Datensatz vorhanden sind und wie die Matches darin verteilt sind.
 Wie sehr unterschiedliche Datensätze die Ausführungszeit beeinflussen soll in Kapitel \ref{sec:equals_evaluation} untersucht werden.
 
-Neben dem Aussehen des Datensatzes gibt es noch Parameter, die bei der Ausführung des Algorithmus der GPU übermittelt werden und dort ebenfalls einen starken Einfluss auf die Laufzeit nehmen können.
+Neben den Eigenschaften des Datensatzes gibt es noch Parameter, die bei der Ausführung des Algorithmus der GPU übermittelt werden und dort ebenfalls einen starken Einfluss auf die Laufzeit nehmen können.
 Diese Parameter bestehen wie in Kapitel \ref{sec:cuda_scheduling} beschrieben in der Anzahl der Threads pro Block (\emph{Block Size}) und der Anzahl der Blöcke im Grid (\emph{Grid Size}).
-Aus den Parametern setzt sich die \emph{Grid-Konfiguration} zusammen, welche durch das Ausprobieren unterschiedlicher Werte optimiert werden kann.
+Aus den Parametern setzt sich die \emph{Grid-Konfiguration} zusammen, welche praktisch durch das Ausprobieren unterschiedlicher Werte optimiert werden kann.
 
 \begin{figure}[ht]
 	\includegraphics[]{bilder/parameter025.pdf}

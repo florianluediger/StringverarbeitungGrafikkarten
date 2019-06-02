@@ -2,7 +2,7 @@
 \label{sec:regex_naiv}
 
 Aufbauend auf Kapitel \ref{sec:equals_naiv} wird im Folgenden eine komplexere Operation in Form eines Matchers für reguläre Ausdrücke im Kontext der in Kapitel \ref{sec:pipelining} beschriebenen Compiled Query Pipelines auf GPUs untersucht.
-Diese Operation stellt wieder eine Selektion über eine Spalte von String-Daten dar, bei der alle Tupel in die Ergebnisrelation übernommen werden, welche dem Muster eines vorgegebenen regulären Ausdrucks entsprechen.
+Diese Operation stellt ebenfalls eine Selektion über eine Spalte von String-Daten dar, bei der alle Tupel in die Ergebnisrelation übernommen werden, welche dem Muster eines vorgegebenen regulären Ausdrucks entsprechen.
 
 Zunächst wird dazu erläutert, warum das Umsetzen einer solchen Operation im Kontext von Datenbanksystemen relevant ist.
 Anschließend wird die allgemeine Struktur der Operation dargestellt, gefolgt von der tatsächlichen Umsetzung des Musterabgleichs mithilfe von Automaten.
@@ -87,14 +87,14 @@ Ist dies der Fall wird die Lane für folgende Operationen aktiviert, ansonsten b
 \label{sec:regex_duchlaufen}
 
 Das vorgestellte Verfahren generiert vor der Ausführung des Anfrageplans einen deterministischen Automaten, welcher beim kompilieren der Anfragepipeline in den Kernel eingebaut wird.
-Der Automat wird mithilfe des Ragel State Machine Compilers \cite{Thurston2009} erzeugt, auf dem auch der Code zur Verarbeitung des Automaten basiert.
+Der Automat wird mithilfe des \emph{Ragel State Machine Compilers} \cite{Thurston2009} erzeugt, auf dem auch der Code zur Verarbeitung des Automaten basiert.
 
 Ragel ermöglicht es, für das Auswerten eines gegebenen regulären Ausdrucks C-Code zu erzeugen, der automatisch in ein vorgegebenes Rahmenprogramm eingefügt wird.
 Somit ist es leicht möglich, den Automaten in den Rahmen einer kompilierten Anfragepipeline einzupflegen, es müssen also keinerlei Schnittstellen zu anderen Sprachen oder Konzepten erstellt werden.
 
 Der generierte Code lässt sich in zwei Hauptbestandteile aufteilen.
 Zum einen wird etwas Code zur tatsächlichen Durchführung des Musterabgleichs generiert, welcher für unterschiedliche Ausdrücke größtenteils identisch ist.
-Außerdem werden einige Tabellen generiert, welche die tatsächlichen Zustände und Zustandsübergänge des Automaten beinhalten und für jeden regulären Ausdruck neu generiert werden müssen.
+Zum anderen werden einige Tabellen generiert, welche die tatsächlichen Zustände und Zustandsübergänge des Automaten beinhalten und für jeden regulären Ausdruck neu generiert werden.
 
 \begin{figure}[ht]
 	 \begin{lstlisting}[language=MyC++]
@@ -164,11 +164,11 @@ Die vorher gezeigte Abbildung \ref{dfa_beispiel} zeigt dazu die visuelle Darstel
 
 Zusätzlich zur \emph{flat}-Einstellung, erlaubt Ragel außerdem eine Generierung von Code, welche für die Verarbeitung regulärer Ausdrücke mit einem großen Alphabet optimiert wurde.
 Diese Option kann über die \emph{table}-Einstellung abgerufen werden.
-Im Gegensatz zur \emph{flat}-Einstellung wird das aktuell untersuchte Zeichen nicht als Index für einen Array von Zustandsübergängen verwendet, sondern in diesem Array eine binäre Suche nach der korrekten Transition durchgeführt.
+Im Gegensatz zur \emph{flat}-Einstellung wird das aktuell untersuchte Zeichen nicht als Index für einen Array von Zustandsübergängen verwendet, sondern in einem Feld eine binäre Suche nach der korrekten Transition durchgeführt.
 Nach Thurston ist die oben beschriebene \emph{flat}-Option generell schneller, sie lässt sich allerdings nur für ein kleines Alphabet anwenden \cite{Thurston2009}.
-Da im Datenbankkontext generell eher simplere Ausdrücke zu erwarten sind, ist es für die meisten Anwendungsfälle zwar ausreichend, die einfache und schnelle Implementierung zu wählen, es wäre aber auch interessant zu untersuchen, wie groß der Leistungsverlust mit der alternativen Implementierung aussieht, falls komplexere Ausdrücke untersucht werden sollen.
+Da im Datenbankkontext generell eher simplere Ausdrücke zu erwarten sind, ist es für die meisten Anwendungsfälle zwar ausreichend, die einfache und schnelle Implementierung zu wählen, es ist aber auch interessant zu untersuchen, wie groß der Leistungsverlust mit der alternativen Implementierung aussieht, falls komplexere Ausdrücke untersucht werden sollen.
 
 Als Alternative zur vollumfänglichen Unterstützung von regulären Ausdrücken bieten viele Datenbankmanagementsysteme den \emph{LIKE}-Operator an, welcher den einfachen String-Vergleich um Platzhalter erweitert.
 So ist es dem Nutzer möglich anstelle des genauen Suchstrings ein Muster anzugeben, in dem Platzhalter für beliebige Zeichen enthalten sind.
 Mithilfe dieser simpel umzusetzenden Operation lassen sich viele einfache Abfragen an eine Datenbank modellieren, sodass in vielen Fällen kein richtiger regulärer Ausdruck benötigt wird.
-Es wäre daher interessant zu sehen, wie sich die Leistungsfähigkeit dieser Operation mit geringerem Funktionsumfang gegenüber der Umsetzung eines vollständigen Matchers für reguläre Ausdrücke verhält.
+Es ist daher interessant zu sehen, wie sich die Leistungsfähigkeit dieser Operation mit geringerem Funktionsumfang gegenüber der Umsetzung eines vollständigen Matchers für reguläre Ausdrücke verhält.
