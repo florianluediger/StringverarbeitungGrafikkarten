@@ -4,23 +4,8 @@
 Um einige Techniken zur String-Verarbeitung in kompilierten Anfragepipelines auf Grafikkarten entwickeln zu können, wird zunächst ein Operator für den einfachen String-Vergleich für den Query Compiler erarbeitet.
 Ein Vergleich auf Gleichheit stellt dabei die einfachste, sinnvolle Variante einer String-Verarbeitung dar, wodurch der Einfluss vieler Eigenschaften von Strings auf die Ausführung entsprechender Operationen leicht untersucht werden kann.
 
-Zunächst wird dazu die Motivation hinter einer derartigen Untersuchung erläutert und eine bestehende Technik zur String-Verarbeitung erklärt.
-Außerdem wird eine Umsetzung des einfachen String-Vergleichs mittels der CUDA-Schnittstelle ohne spezielle Optimierungen vorgestellt und für einen alternativen Workload für weitere Tests leicht angepasst werden.
+Zunächst wird eine Umsetzung des einfachen String-Vergleichs mittels der CUDA-Schnittstelle ohne spezielle Optimierungen vorgestellt und für einen alternativen Workload für weitere Tests leicht angepasst werden.
 Schließlich wird beurteilt, ob die Lösung das Potential hat eine optimale Performanz zu bieten und auf einen Nachteil der einfachen Implementierung eingegangen.
-
-\section{Motivation}
-
-In den meisten modernen Anwendungsfällen für Datenbankmanagementsysteme stellt die Verarbeitung von String-Daten einen wesentlichen Bestandteil dar.
-So wird häufig auf Gleichheit, Ungleichheit, das Enthaltensein eines Teilstrings oder das Erfüllen eines regulären Ausdrucks getestet.
-Die effiziente Berechnung unterschiedlicher Operatoren auf Zeichenketten ist somit essenziell für das Erreichen eines hohen Durchsatzes und für das Gewährleisten von maximaler Performanz.
-In diesem Kontext versprechen Grafikkarten durch ihre hochgradig parallele Architektur in der Theorie eine bestmögliche Leistung.
-
-Da die Ausführung von String-Operationen auf Grafikkarten wie in Kapitel \ref{sec:unterauslastung_problem} beschrieben einige Probleme birgt, verwenden bisherige Ansätze zur Verarbeitung von Zeichenketten das Konzept der Dictionaries.
-Dabei wird eine Tabelle mit allen Strings aufgebaut und zu diesen ein Schlüssel abgespeichert, welcher zusammen mit jedem String in den anderen Tabellen der Datenbank gespeichert wird.
-Somit können String-Operationen durch andere Operationen auf den Schlüsseln abgebildet werden, wodurch diese eine einheitliche Struktur und damit ein effizientes Ausführungsmuster auf Grafikkarten erhalten.
-Das Aufbauen und Verwalten des für diese Technik verwendeten Dictionaries erzeugt vor allem bei Daten, die sich häufig ändern, einen hohen Aufwand, wodurch die Leistungsfähigkeit des Gesamtsystems sinkt.
-
-Um diesen Verwaltungsaufwand für eine zusätzliche Datenstruktur zu eliminieren, wird eine Lösung entwickelt, die direkt auf den Zeichenketten arbeitet und trotzdem eine hohe Performanz bietet.
 
 \section{Umsetzung des einfachen String-Vergleichs}
 \label{sec:equals_umsetzung}

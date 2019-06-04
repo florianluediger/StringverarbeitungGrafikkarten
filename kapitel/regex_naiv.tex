@@ -8,22 +8,6 @@ Zunächst wird dazu erläutert, warum das Umsetzen einer solchen Operation im Ko
 Anschließend wird die allgemeine Struktur der Operation dargestellt, gefolgt von der tatsächlichen Umsetzung des Musterabgleichs mithilfe von Automaten.
 Schließlich werden noch einige alternative Verfahren vorgestellt, welche unterschiedliche Eigenschaften aufweisen und mit der vorgestellten Umsetzung verglichen werden.
 
-\section{Motivation}
-
-Die Verwendung von regulären Ausdrücken eröffnet in vielen Anwendungsfällen verschiedenste Möglichkeiten, String-Daten effizient zu verarbeiten und die Leistungsfähigkeiten des Datenbanksystems voll auszunutzen.
-Reguläre Ausdrücke stellen ein mächtiges Werkzeug dar, welches den meisten Anwendern von Datenbankmanagementsystemen bekannt ist.
-Diese sind vor allem relevant, da sie wie in Kapitel \ref{sec:regex} beschrieben das hoch effiziente Auswerten komplexer Muster erlauben.
-
-Die meisten aktuellen Datenbankmanagementsysteme bieten eine Unterstützung für reguläre Ausdrücke, da sie das effiziente Abgleichen komplexer Muster ermöglichen und dabei eine hohe Leistung garantieren.
-Gäbe es eine solche Funktion nicht, müsste eine entsprechende Selektion nach dem Ausführen des Anfrageplans durch das DBMS manuell im Anwendungsprogramm durchgeführt werden.
-An dieser Stelle entstehen zahlreiche Probleme, da der Optimierer die Selektion nicht an der optimalen Stelle im Anfrageplan platzieren kann, damit frühzeitig Tupel weg fallen, die nicht in das Ergebnis aufgenommen werden.
-Es entsteht also schon beim Datenbankserver eine erhöhte Last durch das unnötige Verarbeiten von Tupeln.
-Diese werden zusätzlich noch über das Netzwerk zur Anwendung übertragen, wodurch erneut eine erhöhte Netzlast entsteht.
-Die Anwendung wiederum muss anschließend mit einer potenziell geringeren Leistungsfähigkeit als der Datenbankserver die Selektion durchführen, wodurch an dieser Stelle wieder eine unnötig hohe Last entsteht.
-Sollten also Anwendungsfälle auftreten, bei denen eine Selektion durch reguläre Ausdrücke gewünscht ist, stellt die Unterstützung dieser Operation durch das Datenbankmanagementsystem einen massiven Vorteil dar.
-
-%TODO: Was genau ist denn jetzt hier die Motivation? --> Eventuell in die Einleitung verschieben
-
 \section{Struktur der Operation}
 
 Zunächst wird die vorgestellte Operation ohne tiefgreifende Optimierungen implementiert, um damit eine Basis für das Entwickeln einer Verbesserung zu bieten.
@@ -38,8 +22,6 @@ Ist am Ende kein akzeptierender Zustand erreicht, oder wurde die Untersuchung vo
 Bei der Ausführung wird der gesamte Warp parallel abgearbeitet, wodurch die Positionen, an denen die Strings untersucht werden für alle Lanes identisch sind.
 Außerdem wird das Ergebnis erst geschrieben, sobald alle Threads ihren String vollständig durchlaufen haben oder einen Fehlerzustand erreicht haben.
 Schließlich wird jedem Thread eine neue Zeichenkette zugewiesen, mit der das Verfahren wiederholt wird bis sämtliche Tupel abgearbeitet sind.
-
-\newpage
 
 \begin{figure}[ht]
 	\begin{lstlisting}[language=MyC++]
