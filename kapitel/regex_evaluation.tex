@@ -34,6 +34,7 @@ Der untersuchte reguläre Ausdruck passt auf eine bestimmte Zeichenfolge am Anfa
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/regex_dblpANY_no_buffer.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -44,13 +45,13 @@ Der untersuchte reguläre Ausdruck passt auf eine bestimmte Zeichenfolge am Anfa
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=flat]{daten/regex_dblpANY_no_buffer.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=flat]{daten/regex_dblpANY_no_buffer.csv}; 
 			\addlegendentry{Flat};
-			\addplot table [x expr=\coordindex, y=table]{daten/regex_dblpANY_no_buffer.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=table]{daten/regex_dblpANY_no_buffer.csv};
 			\addlegendentry{Table}
-			\addplot table [x expr=\coordindex, y=equals]{daten/regex_dblpANY_no_buffer.csv};
+			\addplot[fill=design3!60, draw=design3!70] table [x expr=\coordindex, y=equals]{daten/regex_dblpANY_no_buffer.csv};
 			\addlegendentry{Präfix}
-			\addplot table [x expr=\coordindex, y=like]{daten/regex_dblpANY_no_buffer.csv};
+			\addplot[fill=design4!60, draw=design4!70] table [x expr=\coordindex, y=like]{daten/regex_dblpANY_no_buffer.csv};
 			\addlegendentry{Like}
 		\end{axis}
 	\end{tikzpicture}
@@ -78,6 +79,7 @@ Der hier verwendete reguläre Ausdruck ist derselbe wie im vorherigen Abschnitt.
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/regex_dblpANY_buffer.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -88,11 +90,11 @@ Der hier verwendete reguläre Ausdruck ist derselbe wie im vorherigen Abschnitt.
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=flat]{daten/regex_dblpANY_buffer.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=flat]{daten/regex_dblpANY_buffer.csv}; 
 			\addlegendentry{Flat};
-			\addplot table [x expr=\coordindex, y=table]{daten/regex_dblpANY_buffer.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=table]{daten/regex_dblpANY_buffer.csv};
 			\addlegendentry{Table}
-			\addplot table [x expr=\coordindex, y=equals]{daten/regex_dblpANY_buffer.csv};
+			\addplot[fill=design3!60, draw=design3!70] table [x expr=\coordindex, y=equals]{daten/regex_dblpANY_buffer.csv};
 			\addlegendentry{Präfix}
 		\end{axis}
 	\end{tikzpicture}
@@ -119,6 +121,7 @@ Der reguläre Ausdruck bleibt derselbe wie in den letzten beiden Abschnitten bes
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/regex_dblpANY_optimal.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -129,13 +132,13 @@ Der reguläre Ausdruck bleibt derselbe wie in den letzten beiden Abschnitten bes
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=flat-buffer]{daten/regex_dblpANY_optimal.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=flat-buffer]{daten/regex_dblpANY_optimal.csv}; 
 			\addlegendentry{Flat mit Lane Refill};
-			\addplot table [x expr=\coordindex, y=table-buffer]{daten/regex_dblpANY_optimal.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=table-buffer]{daten/regex_dblpANY_optimal.csv};
 			\addlegendentry{Table mit Lane Refill}
-			\addplot table [x expr=\coordindex, y=equals-buffer]{daten/regex_dblpANY_optimal.csv};
+			\addplot[fill=design3!60, draw=design3!70] table [x expr=\coordindex, y=equals-buffer]{daten/regex_dblpANY_optimal.csv};
 			\addlegendentry{Präfix mit Lane Refill}
-			\addplot table [x expr=\coordindex, y=like]{daten/regex_dblpANY_optimal.csv};
+			\addplot[fill=design4!60, draw=design4!70] table [x expr=\coordindex, y=like]{daten/regex_dblpANY_optimal.csv};
 			\addlegendentry{Like}
 		\end{axis}
 	\end{tikzpicture}
@@ -162,6 +165,7 @@ Diese Modifikation führt dazu, dass der Präfixtest an dieser Stelle nicht mehr
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/regex_ANYdblpANY.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -173,15 +177,15 @@ Diese Modifikation führt dazu, dass der Präfixtest an dieser Stelle nicht mehr
 			legend pos=north east,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=flat]{daten/regex_ANYdblpANY.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=flat]{daten/regex_ANYdblpANY.csv}; 
 			\addlegendentry{Flat};
-			\addplot table [x expr=\coordindex, y=flat-buffer]{daten/regex_ANYdblpANY.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=flat-buffer]{daten/regex_ANYdblpANY.csv};
 			\addlegendentry{Flat mit Lane Refill}
-			\addplot table [x expr=\coordindex, y=table]{daten/regex_ANYdblpANY.csv};
+			\addplot[fill=design3!60, draw=design3!70] table [x expr=\coordindex, y=table]{daten/regex_ANYdblpANY.csv};
 			\addlegendentry{Table}
-			\addplot table [x expr=\coordindex, y=table-buffer]{daten/regex_ANYdblpANY.csv};
+			\addplot[fill=design4!60, draw=design4!70] table [x expr=\coordindex, y=table-buffer]{daten/regex_ANYdblpANY.csv};
 			\addlegendentry{Table mit Lane Refill}
-			\addplot table [x expr=\coordindex, y=like]{daten/regex_ANYdblpANY.csv};
+			\addplot[fill=design5!60, draw=design5!70] table [x expr=\coordindex, y=like]{daten/regex_ANYdblpANY.csv};
 			\addlegendentry{Like}
 		\end{axis}
 	\end{tikzpicture}
@@ -214,6 +218,7 @@ Dadurch wird ein größerer Automat bei gleichbleibender Selektivität erreicht.
 			ybar,		% Säulendiagramm
 			xlabel={Anzahl Zustände},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/regex_p_name.csv}{states},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -224,13 +229,13 @@ Dadurch wird ein größerer Automat bei gleichbleibender Selektivität erreicht.
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=flat]{daten/regex_p_name.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=flat]{daten/regex_p_name.csv}; 
 			\addlegendentry{Flat};
-			\addplot table [x expr=\coordindex, y=flat-buffer]{daten/regex_p_name.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=flat-buffer]{daten/regex_p_name.csv};
 			\addlegendentry{Flat mit Lane Refill}
-			\addplot table [x expr=\coordindex, y=table]{daten/regex_p_name.csv};
+			\addplot[fill=design3!60, draw=design3!70] table [x expr=\coordindex, y=table]{daten/regex_p_name.csv};
 			\addlegendentry{Table}
-			\addplot table [x expr=\coordindex, y=table-buffer]{daten/regex_p_name.csv};
+			\addplot[fill=design4!60, draw=design4!70] table [x expr=\coordindex, y=table-buffer]{daten/regex_p_name.csv};
 			\addlegendentry{Table mit Lane Refill}
 		\end{axis}
 	\end{tikzpicture}

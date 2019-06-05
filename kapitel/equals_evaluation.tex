@@ -50,6 +50,7 @@ Als Vergleichsgröße wurde die Laufzeit der Algorithmen verwendet, welche ein m
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/type_equals.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -60,13 +61,13 @@ Als Vergleichsgröße wurde die Laufzeit der Algorithmen verwendet, welche ein m
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=equals]{daten/type_equals.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=equals]{daten/type_equals.csv}; 
 			\addlegendentry{Naiv};
-			\addplot table [x expr=\coordindex, y=buffer]{daten/type_equals.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=buffer]{daten/type_equals.csv};
 			\addlegendentry{Mit Lane Refill}
-			\addplot table [x expr=\coordindex, y=unroll_2]{daten/type_equals.csv};
+			\addplot[fill=design3!60, draw=design3!70] table [x expr=\coordindex, y=unroll_2]{daten/type_equals.csv};
 			\addlegendentry{In Zweierschritten}
-			\addplot table [x expr=\coordindex, y=unroll_3]{daten/type_equals.csv};
+			\addplot[fill=design4!60, draw=design4!70] table [x expr=\coordindex, y=unroll_3]{daten/type_equals.csv};
 			\addlegendentry{In Dreierschritten}
 		\end{axis}
 	\end{tikzpicture}
@@ -95,6 +96,7 @@ Schließlich entsteht bei der Messung ein Ausreißer bei einem Anteil passender 
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/type_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -104,9 +106,9 @@ Schließlich entsteht bei der Messung ein Ausreißer bei einem Anteil passender 
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=equals]{daten/type_prefix.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=equals]{daten/type_prefix.csv}; 
 			\addlegendentry{Naiv};
-			\addplot table [x expr=\coordindex, y=buffer]{daten/type_prefix.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=buffer]{daten/type_prefix.csv};
 			\addlegendentry{Mit Lane Refill}
 		\end{axis}
 	\end{tikzpicture}
@@ -131,6 +133,7 @@ Für einen Anteil von 2\% ist wie im vorherigen Test ebenfalls ein Ausreißer zu
 			ybar,		% Säulendiagramm
 			xlabel={Anteil Matches},	% Achsenbeschriftung
 			xtick=data,
+			axis on top,
 			xticklabels from table={daten/dblp_prefix.csv}{Selectivity},	% Beschriftung der Markierungen 
 			width=\textwidth,	% Diagrammbreite
 			height=300, % Diagrammhöhe
@@ -140,9 +143,9 @@ Für einen Anteil von 2\% ist wie im vorherigen Test ebenfalls ein Ausreißer zu
 			legend pos=north west,		% Legende am oberen linken Rand positionieren
 			legend style={legend cell align=left} % Text linksbündig anordnen
 			]
-			\addplot table [x expr=\coordindex, y=equals]{daten/dblp_prefix.csv}; 
+			\addplot[fill=design1!60, draw=design1!70] table [x expr=\coordindex, y=equals]{daten/dblp_prefix.csv}; 
 			\addlegendentry{Naiv};
-			\addplot table [x expr=\coordindex, y=buffer]{daten/dblp_prefix.csv};
+			\addplot[fill=design2!60, draw=design2!70] table [x expr=\coordindex, y=buffer]{daten/dblp_prefix.csv};
 			\addlegendentry{Mit Lane Refill}
 		\end{axis}
 	\end{tikzpicture}

@@ -83,17 +83,17 @@ Der Unterschied zwischen kompilierten Anfragepipelines und klassischen \emph{Tup
 	linebackgroundcolor={%
 	\ifnum\value{lstnumber}>24
 		\ifnum\value{lstnumber}<28
-			\color{red!25}
+			\color{design1!35}
 		\fi
 	\fi
 	\ifnum\value{lstnumber}>28
 		\ifnum\value{lstnumber}<33
-			\color{green!25}
+			\color{design2!35}
 		\fi
 	\fi
 	\ifnum\value{lstnumber}>33
 		\ifnum\value{lstnumber}<38
-			\color{yellow!25}
+			\color{design3!35}
 		\fi
 	\fi
 	}]
@@ -150,11 +150,11 @@ Um jedem Thread eine Menge von Tupeln zuweisen zu können, wird zunächst der gl
 Anschließend wird über alle Elemente aus dem Datensatz iteriert, für die der aktuelle Thread zuständig ist.
 Die Variable \texttt{active} zeigt im Algorithmus an, ob der aktuelle Thread aktiv läuft oder nur darauf wartet, dass die anderen Threads aus seinem Warp ihre Berechnung abschließen.
 
-In einem Schleifendurchlauf, bei dem das Element mit dem Index \texttt{loop\_var} untersucht wird, wird zunächst die rot markierte Selektion ausgeführt.
+In einem Schleifendurchlauf, bei dem das Element mit dem Index \texttt{loop\_var} untersucht wird, wird zunächst die blau markierte Selektion ausgeführt.
 Ist diese fehlgeschlagen, da die Priorität der Bestellung nicht bei 1 liegt, wird der Thread deaktiviert und im weiteren Verlauf nicht mehr beachtet, bis er ein neues Tupel erhält.
 Hat sich das Tupel qualifiziert, folgt darauf der Hash Probe, welcher in grün dargestellt ist.
 Dabei wird das Tupel in der übergebenen Hashtabelle \texttt{hashtable\_date\_key} gesucht und dementsprechend wieder die \texttt{active}-Variable angepasst.
-Schließlich wurde vom Query Compiler noch das Zählen der Ergebnisse umgesetzt, welches hier in gelb hervorgehoben wurde.
+Schließlich wurde vom Query Compiler noch das Zählen der Ergebnisse umgesetzt, welches hier in rot hervorgehoben wurde.
 Dabei wird wieder mithilfe der Synchronisierungsoperation \texttt{\_\_ballot\_sync} die Anzahl der aktiven Lanes gezählt, welche jeweils ein Element des Ergebnisses repräsentieren.
 Diese Anzahl wird daraufhin vom ersten Thread innerhalb des Warps auf das Ergebnis addiert. 
 
