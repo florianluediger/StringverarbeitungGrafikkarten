@@ -1,20 +1,20 @@
 \chapter{Verbesserung des Verfahrens zum Musterabgleich}
 
 Bei dem in Kapitel \ref{sec:regex_naiv} vorgestellten Verfahren tritt ein ähnliches Problem auf wie bei dem zuvor beschriebenen, einfachen String-Vergleich.
-Aufgrund der unterschiedlichen Struktur von Strings werden einige Lanes innerhalb eines Warps früher als andere Lanes inaktiv dadurch, dass sie einen Fehlerzustand oder das Ende des Eingabestrings erreicht haben.
+Aufgrund der unterschiedlichen Struktur von Strings werden einige Lanes innerhalb eines Warps früher als andere Lanes dadurch inaktiv, dass sie einen Fehlerzustand oder das Ende des Eingabestrings erreicht haben.
 Dies hat eine Unterauslastung des Warps zur Folge, wodurch Rechenleistung verschwendet wird.
-Aus diesem Grund ist es wünschenswert den inaktiv gewordenen Threads dynamisch neue Arbeit zuzuweisen.
+Aus diesem Grund ist es wünschenswert, den inaktiv gewordenen Threads dynamisch neue Arbeit zuzuweisen.
 Dazu wird das in Kapitel \ref{sec:equals_lane_refill} vorgestellte Lane Refill-Verfahren zum Einsatz kommen, wodurch im Rahmen der kompilierten Anfragepipelines die Laufzeit optimiert werden kann.
 
 
 \section{Struktur des optimierten Musterabgleichs mit Lane Refill}
 
 Die grundlegende Funktionsweise des Lane Refill wurde in Kapitel \ref{sec:equals_lane_refill_funktionsweise} beschrieben und ist genau so auch auf den parallelen Musterabgleich anwendbar.
-Bei dem Musterabgleich wird eine Lane immer dann inaktiv, wenn der untersuchte String vollständig durchlaufen wurde oder ein Fehlerzustand erreicht wurde und es nicht mehr möglich ist, einen akzeptierenden Zustand zu erreichen.
+Bei dem Musterabgleich wird eine Lane immer dann inaktiv, wenn der untersuchte String vollständig durchlaufen oder ein Fehlerzustand erreicht wurde und es nicht mehr möglich ist, einen akzeptierenden Zustand zu erreichen.
 Nach genau diesen Ereignissen muss überprüft werden, ob die gewünschte Auslastung des Warps unterschritten wird und gegebenenfalls die aktuellen Elemente in den Puffer geschrieben oder neue Elemente aus dem Puffer geladen werden.
 
 Die allgemeine Struktur des Kernels ist identisch zu der in Abbildung \ref{equals_lane_refill_code} vorgestellten Struktur des einfachen String-Vergleichs.
-Um den parallelen Musterabgleich damit umzusetzen, muss die innere Schleife so angepasst werden, dass statt einem einfachen Vergleich zweier Zeichen, der Zustand des Automaten angepasst wird.
+Um den parallelen Musterabgleich damit umzusetzen, muss die innere Schleife so angepasst werden, dass statt einem einfachen Vergleich zweier Zeichen der Zustand des Automaten angepasst wird.
 Der gesamte Kernel ist in Anhang \ref{apx:regex_lane_refill} dargestellt.
 
 Zunächst wird hier von allen aktiven Lanes ein Schritt im DFA durchgeführt und überprüft, ob ein Fehlerzustand erreicht wurde.

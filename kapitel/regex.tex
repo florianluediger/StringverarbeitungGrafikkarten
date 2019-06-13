@@ -5,7 +5,7 @@ Reguläre Ausdrücke sind ein Mittel, um ein Muster von Zeichenketten zu beschre
 Alle Wörter, die dem so beschriebenen Muster entsprechen, werden in einer sogenannten \emph{Sprache} zusammengefasst.
 Erlaubte Operatoren innerhalb von regulären Ausdrücken sind beispielsweise die Konkatenation durch Aneinanderreihen von Elementen, Wiederholung durch den \texttt{*}-Operator, Auswahl durch den \texttt{|}-Operator oder das Verwenden einer Wildcard.
 
-Das Überprüfen, ob ein Wort Teil der Sprache ist, die durch einen regulären Ausdruck beschrieben wird, wird \emph{Wortproblem} genannt.
+Die Überprüfung, ob ein Wort Teil der Sprache ist, die durch einen regulären Ausdruck beschrieben wird, wird \emph{Wortproblem} genannt.
 Um dieses zu lösen, wird ein endlicher Automat verwendet, welcher aus dem regulären Ausdruck generiert wird und durch einen gerichteten Graphen repräsentiert wird.
 Die Knoten des Graphen werden auch Zustände genannt, wobei genau ein Zustand als Startzustand definiert wird und mindestens ein Zustand als akzeptierender Zustand ausgewählt wird.
 Jeder Kante, auch Transition genannt, wird eine Menge von Zeichen zugewiesen, sodass beim schrittweisen Durchlaufen des Eingabewortes ausgehend vom Startzustand der Automat über die Transitionen durchlaufen werden kann.
@@ -15,7 +15,7 @@ Ist am Ende des Wortes ein akzeptierender Zustand erreicht, ist das Wort Teil de
 
 Grundsätzlich lässt sich ein regulärer Ausdruck in einen \emph{deterministischen endlichen Automaten (DFA)} oder einen \emph{nichtdeterministischen endlichen Automaten (NFA)} umwandeln.
 Der Unterschied zwischen diesen beiden Automaten besteht darin, dass nur der NFA ausgehend von einem Zustand mehrere Transitionen mit demselben Zeichen zulässt.
-An dieser Stelle entsteht ein Nichtdeterminismus, da beim Lesen eines Zeichen des Eingabewortes nicht eindeutig ist, welche Transition verfolgt werden muss.
+An dieser Stelle entsteht ein Nichtdeterminismus, da beim Lesen eines Zeichens des Eingabewortes nicht eindeutig ist, welche Transition verfolgt werden muss.
 Die Modelle des regulären Ausdrucks, des DFA und des NFA sind äquivalent und lassen sich daher ineinander überführen \cite{Hopcroft2002}.
 Aus dem regulären Ausdruck \texttt{(0|1)*((00)+|001)0} lassen sich somit der in Abbildung \ref{nfa_beispiel} dargestellte NFA und der in Abbildung \ref{dfa_beispiel} dargestellte DFA generieren.
 
@@ -90,7 +90,7 @@ Dieses Verfahren wird in Abbildung \ref{dfa_matching} schematisch dargestellt.
 \end{figure}
 
 Abbildung \ref{nfa_matching} stellt entsprechend das Verfahren zur Durchführung des Musterabgleichs mittels eines NFAs dar.
-Dieses funktioniert sehr ähnlich zu einem DFA, allerdings müssen gegebenenfalls mehrere Zustände gleichzeitig betrachtet werden, wodurch die Auswertung des Automaten komplizierter und zeitaufwändiger wird.
+Dieses funktioniert sehr ähnlich zu einem DFA, allerdings müssen gegebenenfalls mehrere Zustände gleichzeitig betrachtet werden.
 
 \section{Auswahl eines geeigneten Ansatzes}
 
@@ -99,7 +99,7 @@ Dadurch steigt die Rechenlast beim Lesen von Zeichen und die allgemeine Performa
 Bei DFAs ist dies nicht der Fall, da durch den Determinismus zu jeder Zeit klar ist, welche Transition verfolgt werden muss und in welchem Zustand der Automat sich befindet.
 
 Der Nachteil eines DFA liegt allerdings darin, dass dieser im Gegensatz zum NFA eine exponentiell große Anzahl von Zuständen haben kann.
-die Zeit für das Verarbeiten eines Strings wird dadurch zwar nicht direkt beeinflusst, allerdings steigt der Speicherverbrauch enorm, wodurch Die Verwendung eines DFA gegebenenfalls unmöglich wird.
+die Zeit für das Verarbeiten eines Strings wird dadurch zwar nicht direkt beeinflusst, allerdings steigt der Speicherverbrauch enorm, wodurch die Verwendung eines DFA gegebenenfalls unmöglich wird.
 
 Vergangene Arbeiten zeigen, dass ein unkomprimierter DFA die optimale Laufzeit erzielt \cite{Yu2013}.
 Außerdem ist nicht zu erwarten, dass im Kontext einer Datenbankanfrage ein hoch komplexer regulärer Ausdruck benötigt wird, sodass der Automat eine effiziente Größe überschreiten würde.

@@ -10,18 +10,17 @@ Schließlich werden noch einige alternative Verfahren vorgestellt, welche unters
 
 \section{Struktur der Operation}
 
-Zunächst wird die vorgestellte Operation ohne tiefgreifende Optimierungen implementiert, um damit eine Basis für das Entwickeln einer Verbesserung zu bieten.
 Für das Verarbeiten des regulären Ausdrucks wird ein deterministischer Automat erstellt, der genau dann akzeptiert, wenn der aktuell überprüfte String in das Muster des regulären Ausdrucks passt.
 
 Das allgemeine Vorgehen der Operation ist ähnlich zu dem in Kapitel \ref{sec:equals_umsetzung} beschriebenen einfachen String-Vergleich.
-Jedem Thread der GPU wir ein Tupel zugewiesen, welcher mithilfe des Automaten untersucht werden soll.
+Jedem Thread der GPU wird ein Tupel zugewiesen, welcher mithilfe des Automaten untersucht werden soll.
 Nachdem der aktuelle Zustand des DFA auf den Startzustand gesetzt wurde, wird der String Zeichen für Zeichen durchlaufen, wobei der Zustand in jedem Schritt entsprechend der Regeln des Automaten aktualisiert wird.
 Sobald die Zeichenkette vollständig durchlaufen wurde, wird geprüft, ob sich der Automat in einem akzeptierenden Zustand befindet, in welchem Fall der gesuchte String in das Muster des regulären Ausdrucks passt.
 Ist am Ende kein akzeptierender Zustand erreicht, oder wurde die Untersuchung vorzeitig abgebrochen, weil ein Fehlerzustand erreicht wurde, wird das Tupel nicht in das Ergebnis übernommen.
 
-Bei der Ausführung wird der gesamte Warp parallel abgearbeitet, wodurch die Positionen, an denen die Strings untersucht werden für alle Lanes identisch sind.
+Bei der Ausführung wird der gesamte Warp parallel abgearbeitet, wodurch die Positionen, an denen die Strings untersucht werden, für alle Lanes identisch sind.
 Außerdem wird das Ergebnis erst geschrieben, sobald alle Threads ihren String vollständig durchlaufen haben oder einen Fehlerzustand erreicht haben.
-Schließlich wird jedem Thread eine neue Zeichenkette zugewiesen, mit der das Verfahren wiederholt wird bis sämtliche Tupel abgearbeitet sind.
+Schließlich wird jedem Thread eine neue Zeichenkette zugewiesen, mit der das Verfahren wiederholt wird, bis sämtliche Tupel abgearbeitet sind.
 
 \begin{figure}[ht]
 	\begin{lstlisting}[language=MyC++]
@@ -63,7 +62,7 @@ Daraufhin wird überprüft, ob der iterierende Zeiger \texttt{p} auf das Ende de
 Die Lane wird ebenfalls deaktiviert, wenn der Fehlerzustand \texttt{0} erreicht wurde, von dem aus ein Erreichen eines akzeptierenden Zustandes unmöglich ist.
 
 Nachdem sämtliche Lanes ihre Berechnung abgeschlossen haben, wird überprüft, ob der aktuelle Zustand des DFA zu der Gruppe der akzeptierenden Zustände gehört.
-Ist dies der Fall wird die Lane für folgende Operationen aktiviert, ansonsten bleibt diese deaktiviert, sodass die Folgeoperationen nicht ausgeführt werden müssen.
+Ist dies der Fall, wird die Lane für folgende Operationen aktiviert, ansonsten bleibt diese deaktiviert, sodass die Folgeoperationen nicht ausgeführt werden müssen.
 
 \section{Erstellen und Durchlaufen des Automaten}
 \label{sec:regex_duchlaufen}
@@ -138,19 +137,19 @@ Zum anderen werden einige Tabellen generiert, welche die tatsächlichen Zuständ
 	\label{naive_regex_felder}
 \end{figure}
  
-Da diese Darstellung des Automaten für den Menschen kaum lesbar ist und ein Debugging somit sehr aufwändig werden würde, bietet Ragel außerdem ein Werkzeug zur Visualisierung des Graphen.
+Da diese Darstellung des Automaten für den Menschen kaum lesbar ist und ein Debugging somit sehr aufwändig wäre, bietet Ragel außerdem ein Werkzeug zur Visualisierung des Graphen.
 Die vorher gezeigte Abbildung \ref{dfa_beispiel} zeigt dazu die visuelle Darstellung des erzeugten DFA.
 
 \section{Alternative Verfahren}
 \label{sec:regex_alternativen}
 
-Zusätzlich zur \emph{flat}-Einstellung, erlaubt Ragel außerdem eine Generierung von Code, welche für die Verarbeitung regulärer Ausdrücke mit einem großen Alphabet optimiert wurde.
-Diese Option kann über die \emph{table}-Einstellung abgerufen werden.
-Im Gegensatz zur \emph{flat}-Einstellung wird das aktuell untersuchte Zeichen nicht als Index für einen Array von Zustandsübergängen verwendet, sondern in einem Feld eine binäre Suche nach der korrekten Transition durchgeführt.
+Zusätzlich zur \emph{flat}-Einstellung bietet Ragel die \emph{Table}-Option, welche eine Generierung von Code erlaubt, welche für die Verarbeitung regulärer Ausdrücke mit einem großen Alphabet optimiert wurde.
+Im Gegensatz zur \emph{flat}-Einstellung wird nicht das aktuell untersuchte Zeichen als Index für einen Array von Zustandsübergängen verwendet, sondern in einem Feld eine binäre Suche nach der korrekten Transition durchgeführt.
 Nach Thurston ist die oben beschriebene \emph{flat}-Option generell schneller, sie lässt sich allerdings nur für ein kleines Alphabet anwenden \cite{Thurston2009}.
-Da im Datenbankkontext generell eher simplere Ausdrücke zu erwarten sind, ist es für die meisten Anwendungsfälle zwar ausreichend, die einfache und schnelle Implementierung zu wählen, es ist aber auch interessant zu untersuchen, wie groß der Leistungsverlust mit der alternativen Implementierung aussieht, falls komplexere Ausdrücke untersucht werden sollen.
+Da im Datenbankkontext generell eher simplere Ausdrücke zu erwarten sind, ist es für die meisten Anwendungsfälle zwar ausreichend, die einfache und schnelle Implementierung zu wählen.
+Es ist aber auch interessant zu untersuchen, wie groß der Leistungsverlust mit der alternativen Implementierung aussieht, falls komplexere Ausdrücke untersucht werden sollen.
 
 Als Alternative zur vollumfänglichen Unterstützung von regulären Ausdrücken bieten viele Datenbankmanagementsysteme den \emph{LIKE}-Operator an, welcher den einfachen String-Vergleich um Platzhalter erweitert.
-So ist es dem Nutzer möglich anstelle des genauen Suchstrings ein Muster anzugeben, in dem Platzhalter für beliebige Zeichen enthalten sind.
+So ist es dem Nutzer möglich, anstelle des genauen Suchstrings ein Muster anzugeben, in dem Platzhalter für beliebige Zeichen enthalten sind.
 Mithilfe dieser simpel umzusetzenden Operation lassen sich viele einfache Abfragen an eine Datenbank modellieren, sodass in vielen Fällen kein richtiger regulärer Ausdruck benötigt wird.
 Es ist daher interessant zu sehen, wie sich die Leistungsfähigkeit dieser Operation mit geringerem Funktionsumfang gegenüber der Umsetzung eines vollständigen Matchers für reguläre Ausdrücke verhält.
