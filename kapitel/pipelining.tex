@@ -65,7 +65,7 @@ Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 	\label{pipeline_example_plan}
 \end{figure}
 
-Das Pipelining-Prinzip, welches bei dem vorgestellten Query Compiler zum Einsatz kommt, legt fest, dass der Anfrageplan in Pipelines aufgeteilt wird, die von den Tupeln immer vollständig durchlaufen werden, bevor das Ergebnis materialisiert wird.
+Das Pipelining-Prinzip, welches bei dem vorgestellten Query Compiler zum Einsatz kommt, legt fest, dass der Anfrageplan in Pipelines aufgeteilt wird, die von den Tupeln immer vollständig durchlaufen werden, bevor das Ergebnis in den Speicher geschrieben wird.
 Dieses Vorgehen wird \emph{Tuple-At-A-Time} genannt.
 Die Operatoren innerhalb des Anfrageplans aus Abbildung \ref{pipeline_example_plan} werden zu zwei Pipelines zusammengefasst.
 In der linken Pipeline wird die \textsf{dates}-Relation gelesen, die Selektion ausgeführt und die Hashtabelle für den Join berechnet.

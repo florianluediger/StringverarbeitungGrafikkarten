@@ -1,7 +1,7 @@
 \chapter{Einleitung}
 
-Ein Großteil der Datensätze, die in realen Systemen zum Einsatz kommen enthalten eine große Vielfalt an String-Datensätzen mit verschiedensten Eigenschaften.
-Die Operationen, die auf diesen Datensätzen ausgeführt werden reichen von Gleichheitsüberprüfungen über das Enthaltensein eines Teilstrings bis zum Erfüllen eines komplexen, regulären Ausdrucks.
+Ein Großteil der Datensätze, die in realen Systemen zum Einsatz kommen, enthalten eine große Vielfalt an String-Datensätzen mit verschiedensten Eigenschaften.
+Die Operationen, die auf diesen Datensätzen ausgeführt werden, reichen von Gleichheitsüberprüfungen über das Enthaltensein eines Teilstrings bis zum Erfüllen eines komplexen, regulären Ausdrucks.
 In dieser Arbeit wird untersucht werden, wie sich die unterschiedlichen Operationen zur String-Verarbeitung verhalten, wenn diese auf einer hochgradig parallel arbeitenden Grafikkarte ausgeführt werden.
 Außerdem wird analysiert, ob ein Verfahren zur Steigerung der Auslastung der Grafikkarte eine signifikante Leistungssteigerung erzielen kann.
 
@@ -16,13 +16,13 @@ Aus diesem Grund verwenden bisherige Ansätze zur Verarbeitung von Zeichenketten
 Dabei wird eine Tabelle mit allen Strings aufgebaut und zu diesen ein Schlüssel abgespeichert, welcher zusammen mit jedem String in den anderen Tabellen der Datenbank gespeichert wird.
 Somit können String-Operationen durch andere Operationen auf den Schlüsseln abgebildet werden, wodurch diese eine einheitliche Struktur und damit ein effizientes Ausführungsmuster auf Grafikkarten erhalten.
 Das Aufbauen und Verwalten des für diese Technik verwendeten Dictionaries erzeugt vor allem bei Daten, die sich häufig ändern, einen hohen Aufwand, wodurch die Leistungsfähigkeit des Gesamtsystems sinkt.
-Um diesen Verwaltungsaufwand für eine zusätzliche Datenstruktur zu eliminieren, wäre es wünschenswert eine Lösung zu finden, die den Verwaltungsaufwand eliminiert und direkt auf den ursprünglichen String-Daten arbeitet.
+Um diesen Verwaltungsaufwand für eine zusätzliche Datenstruktur zu eliminieren, wäre es wünschenswert eine Lösung zu finden, die diesen Aufwand vermeidet und direkt auf den ursprünglichen String-Daten arbeitet.
 
 Soll eine komplexere Operation auf den Daten ausgeführt werden, die mit regulären Ausdrücken arbeitet, ist die Verwendung eines Dictionaries nicht mehr möglich und spätestens an dieser Stelle muss auf eine andere Methode zurückgegriffen werden.
 Die Verwendung von regulären Ausdrücken eröffnet in vielen Anwendungsfällen verschiedenste Möglichkeiten, String-Daten effizient zu verarbeiten und die Leistungsfähigkeiten des Datenbanksystems voll auszunutzen.
 Reguläre Ausdrücke stellen ein mächtiges Werkzeug dar, welches den meisten Anwendern von Datenbankmanagementsystemen bekannt ist und vor allem relevant ist, da es das hoch effiziente Auswerten komplexer Muster erlaubt.
 
-Die meisten aktuellen Datenbankmanagementsysteme bieten eine Unterstützung für reguläre Ausdrücke, da sie das effiziente Abgleichen komplexer Muster ermöglichen und dabei eine hohe Leistung garantieren.
+Die meisten aktuellen Datenbankmanagementsysteme bieten eine Unterstützung für reguläre Ausdrücke, da sie eine hohe Leistung beim Musterabgleich garantieren.
 Gäbe es eine solche Funktion nicht, müsste eine entsprechende Selektion nach dem Ausführen des Anfrageplans durch das DBMS manuell im Anwendungsprogramm durchgeführt werden.
 An dieser Stelle entstehen zahlreiche Probleme, da der Optimierer die Selektion nicht an der optimalen Stelle im Anfrageplan platzieren kann, damit frühzeitig Tupel weg fallen, die nicht in das Ergebnis aufgenommen werden.
 Es entsteht also schon beim Datenbankserver eine erhöhte Last durch das unnötige Verarbeiten von Tupeln.
@@ -33,7 +33,7 @@ Auch für Datenbanksysteme, die auf Grafikkarten arbeiten sollte also sichergest
 
 \section{Zielsetzung}
 
-In dieser Arbeit sollen verschiedene Operationen, die auf String-Daten arbeiten im Kontext von kompilierten Anfrageplänen mithilfe des Query Compilers DogQC untersucht werden.
+In dieser Arbeit sollen verschiedene Operationen, die auf String-Daten arbeiten, im Kontext von kompilierten Anfrageplänen mithilfe des Query Compilers DogQC untersucht werden.
 Ziel ist es dabei die Performanz der umgesetzten Operatoren zu analysieren und Flaschenhälse, die durch eine schlechte Auslastung der Grafikkarte entstehen, zu identifizieren.
 Diese Flaschenhälse sollen mithilfe des Lane Refill-Verfahrens eliminiert werden, wodurch eine Steigerung der Leistungsfähigkeit erreicht werden soll.
 Neben einfachen String-Operatoren sollen auch komplexere Techniken, welche reguläre Ausdrücke zur String-Verarbeitung verwenden, analysiert werden und untersucht werden, ob diese einen Laufzeitgewinn durch das Lane Refill erreichen.

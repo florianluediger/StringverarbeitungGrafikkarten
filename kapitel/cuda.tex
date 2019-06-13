@@ -1,6 +1,6 @@
 \chapter{Grundlagen der GPU-Programmierung}
 
-Um die in dieser Arbeit vorgestellten Herausforderungen bei der Verarbeitung von Zeichenketten(\emph{Strings}) mit Grafikprozessoren, nachfolgend auch \emph{GPUs} genannt, verstehen zu können, ist zunächst ein Verständnis der grundlegenden Eigenschaften aktueller Hardware nötig.
+Um die in dieser Arbeit vorgestellten Herausforderungen bei der Verarbeitung von Zeichenketten (\emph{Strings}) mit Grafikprozessoren, nachfolgend auch \emph{GPUs} genannt, verstehen zu können, ist zunächst ein Verständnis der grundlegenden Eigenschaften aktueller Hardware nötig.
 Dabei beschränkt sich diese Untersuchung auf die Grafikkarten-Serie Maxwell von Nvidia, die hier besprochenen Prinzipien lassen sich allerdings auch auf die GPUs anderer Hersteller übertragen und finden dort ebenfalls Anwendung.
 
 \section{Grundaufbau einer Nvidia-Grafikkarte}
@@ -44,7 +44,7 @@ Das Finden der richtigen Parameter gestaltet sich als äußerst schwierig, da di
 
 Eine für die Programmierung von GPUs entscheidende Eigenschaft besteht darin, dass die Threads innerhalb eines Warps parallel ausgeführt werden.
 Ähnlich wie bei dem Prinzip \emph{Single Instruction Multiple Data (SIMD)} \cite{Pohl2016}, führen die Threads in einem Warp die Instruktionen synchron aus, sodass dieses Prinzip auch \emph{Single Instruction Multiple Threads (SIMT)} genannt wird.
-Die Trennung in mehrere Threads bietet hierbei den Vorteil, dass eigene Register angesprochen werden können, an unterschiedlichen Stellen im Speicher gelesen werden kann und die Kontrollflüsse der Threads leicht divergieren können.
+Die Trennung in mehrere Threads bietet hierbei den Vorteil, dass eigene Register angesprochen werden können und an unterschiedlichen Stellen im Speicher gelesen werden kann.
 Prozesse laufen außerdem zwar logisch parallel ab, allerdings muss dies nicht notwendigerweise physisch auch so sein, sodass in einigen Fällen eine höhere Leistung erzielt werden kann.
 Für die optimale Performanz einzelner Operationen sollte allerdings gewährleistet sein, dass die Threads größtenteils synchron ausgeführt werden.
 
