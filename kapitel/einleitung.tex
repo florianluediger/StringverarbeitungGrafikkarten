@@ -43,10 +43,10 @@ Mithilfe dieser Betrachtungen sollen Rückschlüsse darüber gezogen werden, ob 
 
 Um verstehen zu können, warum bei der Verarbeitung von String-Daten auf Grafikkarten verschiedene Probleme auftreten können, werden zunächst der Grundaufbau und die wichtigsten Eigenschaften von Grafikprozessoren erklärt.
 Anschließend werden die bei DogQC zum Einsatz kommenden Verfahren zur Kompilierung von Anfrageplänen erläutert und die Rahmenbedingungen für die nachfolgenden Untersuchungen festgelegt.
-In Kapitel \ref{sec:equals_naiv} wird der einfache String-Vergleich erarbeitet und auf verschiedene Probleme hingewiesen, die im nachfolgenden Kapitel durch den Einsatz des Lane Refill beseitigt werden.
+In Kapitel \ref{sec:equals_naiv} wird der einfache String-Vergleich erarbeitet und auf verschiedene Probleme hingewiesen, die im nachfolgenden Kapitel durch den Einsatz des Lane Refill behoben werden.
 An dieser Stelle wird außerdem erklärt, wie das Lane Refill-Verfahren funktioniert und warum es durch eine höhere Auslastung der Grafikkarte eine bessere Performanz erreichen kann.
-Anschließend wird in Kapitel \ref{sec:regex} vorgestellt, wie reguläre Ausdrücke mithilfe von endlichen Automaten ausgewertet werden können und ein geeigneter Ansatz für die Umsetzung im Query Compiler ausgewählt.
+Anschließend wird in Kapitel \ref{sec:regex} erläutert, wie reguläre Ausdrücke mithilfe von endlichen Automaten ausgewertet werden können und ein geeigneter Ansatz für die Umsetzung im Query Compiler ausgewählt.
 Im folgenden Teil wird der parallele Musterabgleich mit regulären Ausdrücken umgesetzt und ähnlich wie beim einfachen String-Vergleich durch das Lane Refill erweitert.
 Vorbereitend auf die im letzten Teil der Arbeit durchgeführten Leistungstests der verschiedenen Algorithmen wird aufgezeigt, wie das Optimieren verschiedener Parameter bei der Ausführung von Algorithmen auf einer Grafikkarte einen Einfluss auf die Performanz des Systems nimmt und wie diese Optimierung durchgeführt werden kann.
 Schließlich folgen zwei Kapitel zur Evaluation des einfachen String-Vergleichs und des Musterabgleichs mit regulären Ausdrücken, in denen untersucht wird, wie sich die unterschiedlichen Algorithmen verhalten und ob durch die Verwendung des Lane Refill-Verfahrens ein Laufzeitgewinn erreicht werden kann.
-Abschließend wird in einem Fazit Stellung dazu genommen, ob die hier beschriebene Zielsetzung erreicht werden konnte und ob das Lane Refill bei der Verarbeitung von Zeichenketten eine sinnvolle Anwendung findet.
+Abschließend wird in einem Fazit Stellung dazu genommen, ob die vorher beschriebene Zielsetzung erreicht werden konnte und ob das Lane Refill bei der Verarbeitung von Zeichenketten eine sinnvolle Anwendung findet.
