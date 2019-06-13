@@ -4,25 +4,25 @@ Um die Arbeit abzuschließen, soll in diesem Kapitel ein Überblick über die Er
 
 \section{Ergebnis der Arbeit}
 
-Als Basis für die späteren Untersuchungen, wurde eine Umsetzung des einfachen String-Vergleichs, eines Präfixtests und eines parallelen Musterabgleichs mit regulären Ausdrücken im Kontext von kompilierten Anfragepipelines auf GPUs vorgestellt.
-Diese Operationen sind so strukturiert, dass sie ohne Probleme in den Query Compiler DogQC übernommen werden können und damit dessen Funktionalität erweitern.
+Als Basis für die späteren Untersuchungen wurde eine Umsetzung des einfachen String-Vergleichs, eines Präfixtests und eines parallelen Musterabgleichs mit regulären Ausdrücken im Kontext von kompilierten Anfragepipelines auf GPUs vorgestellt.
+Diese Operationen sind so strukturiert, dass sie leicht in den Query Compiler DogQC übernommen werden können und damit dessen Funktionalität erweitern.
 Die Algorithmen wurden analysiert und dadurch Engpässe durch eine Unterauslastung der Warps erkannt, welche durch den Einsatz des Lane Refill-Verfahrens beseitigt wurden.
 
-Durch die Verbesserung der Auslastung wurde eine Leistungssteigerung erzielt, welche in zahlreichen Tests beobachtet werden konnte.
-Das Lane Refill zeigte sich als hervorragendes Verfahren, um die Leistungsfähigkeit von Algorithmen, die mit String-Daten auf Grafikkarten arbeiten, zu erhöhen.
+Durch die Verbesserung der Auslastung wurde eine Leistungssteigerung erzielt, welche in zahlreichen Tests beobachtet werden kann.
+Das Lane Refill zeigt sich als hervorragendes Verfahren, um die Leistungsfähigkeit von Algorithmen, die mit String-Daten auf Grafikkarten arbeiten, zu erhöhen.
 In jedem der durchgeführten Tests erzielte das Lane Refill eine Verbesserung, welche in einigen Fällen einen Leistungsvorteil von bis zu 80\% erreichte.
 
 
 \section{Ausblick}
 
-Da durch das hier untersuchte Verfahren die Leistung verschiedenster String-Operationen verbessert werden konnte, entfällt in einigen Anwendungsfällen die Notwendigkeit ein Dictionary zu verwenden, um eine akzeptable Leistung erzielen zu können.
-Dadurch, dass direkt auf den String-Daten gearbeitet wird, entfällt der Aufwand, eine weitere Datenstruktur pflegen zu müssen und es wird eine allgemein effizientere Verarbeitung verschiedener Arbeitslasten erreicht.
+Da durch das hier untersuchte Verfahren die Leistung verschiedenster String-Operationen verbessert werden konnte, entfällt in einigen Anwendungsfällen die Notwendigkeit, ein Dictionary zu verwenden, um eine akzeptable Leistung erzielen zu können.
+Dadurch, dass direkt auf den String-Daten gearbeitet wird, entfällt der Aufwand, eine weitere Datenstruktur pflegen zu müssen, und es wird eine allgemein effizientere Verarbeitung verschiedener Arbeitslasten erreicht.
 
-Datenbankmanagementsysteme, die Grafikkarten als Coprozessoren zur Leistungssteigerung verwenden, können vom Lane Refill-Verfahren profitieren, da diverse String-Operationen und besonders die Verarbeitung von regulären Ausdrücken effektiver durchgeführt werden können.
-Auch ohne die Verwendung von kompilierten Anfragepipelines kann durch dieses Verfahren ein Geschwindigkeitsvorteil erreicht werden, worüber in folgenden Arbeiten weitere Analysen durchgeführt werden können.
+Datenbankmanagementsysteme, die Grafikkarten als Coprozessoren zur Leistungssteigerung verwenden, können vom Lane Refill-Verfahren profitieren, da diverse String-Ope\-ra\-tio\-nen und besonders die Verarbeitung von regulären Ausdrücken effektiver durchgeführt werden können.
+Auch ohne die Verwendung von kompilierten Anfragepipelines kann durch dieses Verfahren ein Geschwindigkeitsvorteil erreicht werden, was in folgenden Arbeiten weiter analysiert werden könnte.
 
-Andere Datenbanksysteme, welche noch keine Unterstützung für Grafikprozessoren bieten, könnten um diese erweitert werden, um bestimmte Operationen auf der hochgradig parallelen Hardware effizienter ausführen zu können.
-Dabei kann eine zusätzliche Leistungssteigerung durch das Lane Refill dabei helfen diese Lösung profitabel gegenüber der Berechnung der Operationen auf der CPU zu machen.
+Andere Datenbanksysteme, die noch keine Unterstützung für Grafikprozessoren bieten, könnten um diese erweitert werden, um bestimmte Operationen auf der hochgradig parallelen Hardware effizienter ausführen zu können.
+Dabei kann eine zusätzliche Leistungssteigerung durch das Lane Refill dabei helfen, diese Lösung profitabel gegenüber der Berechnung der Operationen auf der CPU zu machen.
 Ist keine GPU-Unterstützung möglich, kann die Verwendung der SIMD-Fähigkeiten moderner Prozessoren zur parallelen Datenverarbeitung ebenfalls eine Leistungssteigerung bieten.
 Vergangene Arbeiten zeigen bereits, dass auch in diesem Falle eine Leistungssteigerung durch das Lane Refill erreicht werden kann \cite{Lang2018}.
 
