@@ -111,9 +111,20 @@
 % Hyperref-Paket zur Optimierung der PDF
 \usepackage{hyperref}
 
+\usepackage[markcase=noupper,headsepline]{scrlayer-scrpage}
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+
+\setkomafont{pagehead}{\normalfont}
+
+\ohead{\pagemark}
+\ihead{\headmark}
+\automark[chapter]{chapter}
+
 \hypersetup{
 	pdftitle = {Effiziente String-Verarbeitung in Datenbankanfragen auf hochgradig paralleler Hardware},
 	pdfauthor = {Florian Lüdiger},
 	colorlinks=true,
 	allcolors = black
 }
+
