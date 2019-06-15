@@ -161,7 +161,7 @@ Falls der neu gewählte Index hinter dem Ende der Daten liegt, hat der aktuelle 
 Wird anschließend mithilfe der \texttt{\_\_ballot\_sync}-Methode festgestellt, dass sämtliche Lanes inaktiv sind, ist der Datensatz vollständig durchlaufen worden und die Berechnung kann abgeschlossen werden.
 Das parallele Abarbeiten eines Warps und das Synchronhalten aller Lanes wird \emph{warp synchronous programming} genannt \cite{Lin2018}.
 
-Durch die Untersuchung des hier vorgestellten Verfahrens der \emph{Tuple-At-A-Time}-Verarbeitung wird klar, dass dieses einen großen Vorteil bei der effizienten Nutzung von schnellem Speicher gegenüber der \emph{Operator-At-A-Time} Verarbeitung bietet.
+Durch die Untersuchung des hier vorgestellten Verfahrens der \emph{Tuple-At-A-Time}-Ver\-ar\-bei\-tung wird klar, dass dieses einen großen Vorteil bei der effizienten Nutzung von schnellem Speicher gegenüber der \emph{Operator-At-A-Time} Verarbeitung bietet.
 Zwischenergebnisse müssen nicht materialisiert werden, weshalb Tupel in Registern oder Caches vorgehalten werden können und die Operationen für das explizite Materialisieren entfallen.
 
 Im Gegensatz zu der \emph{Operator-At-A-Time}-Technik lässt sich das Pipelining allerdings nicht so einfach auf eine parallele Verarbeitung mit GPUs übertragen.
