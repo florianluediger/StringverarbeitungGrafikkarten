@@ -2,7 +2,7 @@
 \label{sec:regex}
 
 Reguläre Ausdrücke sind ein Mittel, um ein Muster von Zeichenketten zu beschreiben.
-Alle Wörter, die dem so beschriebenen Muster entsprechen, werden in einer sogenannten \emph{Sprache} zusammengefasst.
+Alle Wörter, die dem so beschriebenen Muster entsprechen, werden in einer \emph{Sprache} zusammengefasst.
 Erlaubte Operatoren innerhalb von regulären Ausdrücken sind beispielsweise die Konkatenation durch Aneinanderreihen von Elementen, Wiederholung durch den \texttt{*}-Operator, Auswahl durch den \texttt{|}-Operator oder das Verwenden einer Wildcard.
 
 Die Überprüfung, ob ein Wort Teil der Sprache ist, die durch einen regulären Ausdruck beschrieben wird, wird \emph{Wortproblem} genannt.
@@ -16,7 +16,7 @@ Ist am Ende des Wortes ein akzeptierender Zustand erreicht, ist das Wort Teil de
 Grundsätzlich lässt sich ein regulärer Ausdruck in einen \emph{deterministischen endlichen Automaten (DFA)} oder einen \emph{nichtdeterministischen endlichen Automaten (NFA)} umwandeln.
 Der Unterschied zwischen diesen beiden Automaten besteht darin, dass nur der NFA ausgehend von einem Zustand mehrere Transitionen mit demselben Zeichen zulässt.
 An dieser Stelle entsteht ein Nichtdeterminismus, da beim Lesen eines Zeichens des Eingabewortes nicht eindeutig ist, welche Transition verfolgt werden muss.
-Die Modelle des regulären Ausdrucks, des DFA und des NFA sind äquivalent und lassen sich daher ineinander überführen \cite{Hopcroft2002}.
+Die Modelle des regulären Ausdrucks, des DFA und des NFA sind äquivalent und lassen sich ineinander überführen \cite{Hopcroft2002}.
 Aus dem regulären Ausdruck \texttt{(0|1)*((00)+|001)0} lassen sich somit der in Abbildung \ref{nfa_beispiel} dargestellte NFA und der in Abbildung \ref{dfa_beispiel} dargestellte DFA generieren.
 
 \begin{figure}[]

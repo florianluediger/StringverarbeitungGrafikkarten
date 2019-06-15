@@ -11,7 +11,7 @@ In diesem Kapitel wird diese Untersuchung anhand realer Arbeitslasten durchgefü
 Für die Durchführung der Leistungsmessungen wird der Algorithmus so angepasst, dass er lediglich die Anzahl der passenden Zeichenketten zählt und diese am Ende ausgibt.
 Die Testumgebung entspricht also einer Selektion auf einer Spalte einer Relation und dem anschließenden Zählen der Ergebnisse.
 Dieses Vorgehen hat den Vorteil, dass das Zählen der Ergebnisse nicht viel Rechenaufwand verursacht und somit die Leistungsmessungen möglichst wenig verfälscht werden.
-Trotzdem bleibt es möglich, aufgrund der Ausgabe des Algorithmus beurteilen zu können, ob der Test korrekt durchgeführt wurde.
+Trotzdem kann durch die Ausgabe des Algorithmus beurteilt werden, ob der Test korrekt durchgeführt wurde.
 
 Sämtliche Tests wurden auf einem Computer durchgeführt, welcher eine Nvidia GTX 950 mit 2GB Grafikspeicher verbaut hat und als Betriebssystem Ubuntu 18.04 verwendet.
 Außerdem sind ein Intel Core i3-2120 mit zwei Kernen und 16GB Arbeitsspeicher verbaut.
@@ -81,7 +81,7 @@ Außerdem wurde in der Messung die in Kapitel \ref{sec:unroll} beschriebene Vari
 
 Sofort fällt auf, dass eine höhere Anzahl von Matches im Datensatz eine erhöhte Laufzeit für den Algorithmus bedeutet.
 Außerdem liegt die Laufzeit der naiven Umsetzung bedeutend höher als die der drei optimierten Varianten, welche das Lane Refill-Verfahren verwenden.
-Der Algorithmus, welcher das Lane Refill implementiert, ist zwischen 4\% und 43\% schneller als die naive Implementierung.
+Der Algorithmus, welcher das Lane Refill implementiert, ist zwischen 19\% und 65\% schneller als die naive Implementierung.
 Dabei entsteht der größte Vorteil bei einem geringen Anteil von passenden Elementen, welcher geringer wird, sobald der Datensatz eine höhere Anzahl von Matches enthält.
 Bis zu einem Anteil von 8\% beträgt die Verbesserung der Laufzeit, die durch das Lane Refill-Verfahren erreicht wurde, mehr als 50\%.
 Es ist außerdem zu erkennen, dass die beiden Varianten, welche die Reduzierung des Overheads erzielen sollten, eine nahezu identische Laufzeit erreichen wie die erste Version, die Lane Refill verwendet.
@@ -119,7 +119,7 @@ Schließlich entsteht bei der Messung ein Ausreißer bei einem Anteil passender 
 Abbildung \ref{fig:type_prefix} zeigt das Ergebnis eines ähnlichen Tests wie dem vorher beschriebenen Experiment, mit der Ausnahme, dass hier der in Kapitel \ref{sec:prefixtest} beschriebene Präfixtest untersucht wird.
 Der verwendete \emph{Type}-Datensatz blieb dabei unverändert, es wurden lediglich die Messungen für die Implementierung zur Reduzierung des Overheads des Lane Refill-Verfahrens ausgelassen.
 
-Wie bei dem vorherigen Benchmark ist zu erkennen, dass eine höhere Anzahl von Matches hier auch eine erhöhte Laufzeit verursacht und dass die Laufzeiten der naiven Implementierung bedeutend über denen der durch das Lane Refill optimierten Umsetzung liegt.
+Wie bei dem vorherigen Benchmark ist zu erkennen, dass eine höhere Anzahl von Matches hier auch eine erhöhte Laufzeit verursacht und dass die Laufzeiten der naiven Implementierung bedeutend über denen der durch das Lane Refill optimierten Umsetzung liegen.
 Die verbesserte Variante des Algorithmus erzielt hier eine Reduzierung der Laufzeit zwischen 4\% und 43\%, wobei auch hier die Differenz zwischen den beiden Verfahren geringer wird, wenn ein höherer Anteil von Matches im Datensatz vorhanden ist.
 Bis zu einem Anteil von 8\% zutreffender Strings im Datensatz ist der Vorteil allerdings noch höher als 30\%.
 Für einen Anteil von 2\% ist wie im vorherigen Test ebenfalls ein Ausreißer zu erkennen.
@@ -165,14 +165,14 @@ Die geringeren Laufzeiten bei einer niedrigeren Anzahl von Matches lassen sich d
 Somit ist bei der naiven Umsetzung die Wahrscheinlichkeit geringer, dass ein Warp bis zum Ende des Vergleichsstrings iterieren muss.
 Auch die verbesserte Variante profitiert davon, dass die Zeichenketten nicht vollständig durchlaufen werden müssen, sodass häufiger neue Strings nachgeladen werden können und weniger tatsächliche Arbeit zu erledigen ist.
 
-Der durchgehend erkennbare Leistungsgewinn, der durch das Lane Refill erreicht wird, lässt erkennen, dass das Erhöhen der Auslastung der Warps eine Steigerung der Performanz mit sich bringt.
+Der durchgehend sichtbare Leistungsgewinn, der durch das Lane Refill erreicht wird, lässt erkennen, dass das Erhöhen der Auslastung der Warps eine Steigerung der Performanz mit sich bringt.
 Dies lässt darauf schließen, dass die Verbesserung der Auslastung einen signifikanteren Einfluss auf die Leistung hat als der durch das Verfahren zusätzlich generierte Overhead.
 Der geringe Einfluss des Overheads lässt sich außerdem daran erkennen, dass die in Abbildung \ref{fig:type_equals} untersuchten Verbesserungen durch Reduzierung des Overheads des Lane Refill-Verfahrens keine signifikante Verringerung der Laufzeit erbringen.
 Die Speicherzugriffe, die für den eigentlichen String-Vergleich durchgeführt werden müssen, haben somit einen bedeutend höheren Einfluss auf die Laufzeit als die Instruktionen, die für das Lane Refill ausgeführt werden.
 
 Ebenfalls in allen Diagrammen erkennbar ist, dass die Leistungssteigerung bei einer höheren Anzahl von Matches geringer wird, was darauf zurückzuführen ist, dass bei einem hohen Anteil zutreffender Elemente keine so starke Unterauslastung bei dem naiven Algorithmus auftritt.
 Dies liegt daran, dass in einem Warp zu jeder Zeit eine höhere Anzahl von zutreffenden Strings geprüft und somit die Zahl der wartenden Lanes geringer wird.
-Es lässt sich also in diesem Fall gar keine so große Verbesserung mehr durch das Einführen des Lane Refill erreichen, da keine große Unterauslastung vorhanden ist, die es zu beseitigen gilt.
+Es lässt sich also in diesem Fall keine allzu große Verbesserung durch das Einführen des Lane Refill erreichen, da keine große Unterauslastung vorhanden ist, die es zu beseitigen gilt.
 
 Der Ausreißer bei einem Anteil von 2\% zutreffender Elemente im \emph{Type}-Datensatz tritt vermutlich aufgrund eines Fehlers innerhalb des Datensatzes auf.
 Es wurde versucht, diesen zu beheben, indem der Datensatz analysiert, überprüft und neu generiert wurde, allerdings ließ sich keine Lösung finden, welche den Ausreißer beseitigt hätte.
