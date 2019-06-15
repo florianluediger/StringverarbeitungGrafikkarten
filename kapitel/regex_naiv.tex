@@ -22,7 +22,7 @@ Bei der Ausführung wird der gesamte Warp parallel abgearbeitet, wodurch die Pos
 Außerdem wird das Ergebnis erst geschrieben, sobald alle Threads ihren String vollständig durchlaufen haben oder einen Fehlerzustand erreicht haben.
 Schließlich wird jedem Thread eine neue Zeichenkette zugewiesen, mit der das Verfahren wiederholt wird, bis sämtliche Tupel abgearbeitet sind.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=MyC++]
 	/* execute previous operators in the pipeline */
 	
@@ -77,7 +77,7 @@ Der generierte Code lässt sich in zwei Hauptbestandteile aufteilen.
 Zum einen wird etwas Code zur tatsächlichen Durchführung des Musterabgleichs generiert, welcher für unterschiedliche Ausdrücke größtenteils identisch ist.
 Zum anderen werden einige Tabellen generiert, welche die tatsächlichen Zustände und Zustandsübergänge des Automaten beinhalten und für jeden regulären Ausdruck neu generiert werden.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	 \begin{lstlisting}[language=MyC++]
 	 __device__ int singleDfaStep(int cs, char* p) {
 		 int _slen;
@@ -106,7 +106,7 @@ Zum anderen werden einige Tabellen generiert, welche die tatsächlichen Zuständ
  Hier werden die ebenfalls von Ragel generierten und in Abbildung \ref{naive_regex_felder} dargestellten Felder verwendet, welche den eigentlichen DFA enthalten.
  In diesem Beispiel handelt es sich um den Automaten, der aus dem Ausdruck \texttt{(0|1)*((00)+|001)0} generiert wurde.
  
- \begin{figure}[ht]
+ \begin{figure}[]
 	 \begin{lstlisting}[language=MyC++]
 	static const char _machine_trans_keys[] = {
 		0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0

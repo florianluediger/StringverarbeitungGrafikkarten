@@ -13,7 +13,7 @@ Soll die Berechnung auf einer GPU erfolgen, kann es passieren, dass der begrenzt
 Somit werden während der Berechnung Transfers in den Hauptspeicher des Systems notwendig, um neue Blöcke der Tabelle nachzuladen.
 Als Konsequenz entstehen massive Flaschenhälse durch die begrenzte Bandbreite.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 		\node (count) {\textsf{count(*)}};
@@ -76,7 +76,7 @@ Der Vorteil des Pipelinings besteht darin, dass die vollständigen Ergebnismenge
 Klassische \emph{Tuple-At-A-Time}-Ausführungsmuster wie das \emph{Volcano Iterator Model} definieren Operatoren als eigenständige Bausteine mit festgelegten Schnittstellen, die von den Tupeln nacheinander durchlaufen werden \cite{Graefe1994}.
 Im Gegensatz dazu werden die Operatoren bei kompilierten Anfragepipelines zu einem Operator verschmolzen, wodurch Funktionsaufrufe entfallen und die Tupel in einem \emph{tight loop} \cite{Neumann2011} verarbeitet werden.
 
-\begin{figure}[h]
+\begin{figure}[]
 	\begin{lstlisting}[language=MyC++,
 	linebackgroundcolor={%
 	\ifnum\value{lstnumber}>24

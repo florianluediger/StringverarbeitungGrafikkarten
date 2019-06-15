@@ -18,7 +18,7 @@ Ist dieser unterschritten, können wiederum zwei Fälle auftreten:
 Sollten sich im Puffer noch ausreichend Tupel befinden, sodass durch Auffüllen der Grenzwert wieder erreicht ist, so werden die inaktiv gewordenen Lanes mit den Zeichenketten aus den gepufferten Tupeln befüllt und es wird weiter gerechnet.
 Wurden hingegen zuvor zu wenige Elemente gepuffert, sodass der Grenzwert nicht erreicht werden kann, werden die Tupel aus den aktiven Lanes im Puffer gespeichert und die Pipeline mit frischen Tupeln neu gestartet, damit später neue Zeichenketten für den String-Vergleich bereitstehen.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 	\node (x11) [draw,thick,minimum width=3,minimum height=3] {};
@@ -130,7 +130,7 @@ Schließlich wird die Pipeline mit frischen Tupeln wieder von vorne gestartet.
 
 \newpage
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=MyC++]
 	while(!flush_pipeline) {
 		/* execute previous operators in the pipeline */
@@ -178,7 +178,7 @@ In einem Feld wird die Position des untersuchten Strings gespeichert (\texttt{cu
 Da der Shared Memory immer auf dem Level eines ganzen Blocks gültig ist, muss dieser so viele Elemente fassen können wie es Threads pro Block gibt.
 Eine ausführliche Version der Umsetzung befindet sich in Anhang \ref{apx:equals_lane_refill}, hier sollen aber dennoch die Techniken zum Zwischenspeichern und Laden von Elementen kurz beschrieben werden.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=MyC++]
 	if (numactive < THRESHOLD) {
 		numRefill = min(32 - numactive, bufferelements);
@@ -207,7 +207,7 @@ Als erstes muss also in Zeile 7 bestimmt werden, wie viele Lanes vor der betrach
 Der Wert \texttt{prefixlanes} ist dabei eine Bitmaske mit einem Bit für jede Lane im Warp, bei der für alle vor der aktuellen Lane liegenden Lanes ein Bit gesetzt wurde.
 Sind weniger Lanes vor der betrachteten Lane inaktiv als Elemente im Puffer vorhanden, darf sich diese Lane in den Zeilen 8-11 ein neues Tupel aus dem Puffer holen.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 	% buffer
@@ -282,7 +282,7 @@ Da der Puffer grundsätzlich von rechts abgearbeitet wird, muss noch der Wert \t
 
 Ist der Index berechnet, können der String und der Suchindex innerhalb des Strings aus dem Puffer geladen werden und die Lane wieder aktiv geschaltet werden.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=MyC++]
 	if (numactive > 0) {
 		previous_active = __popc(__ballot_sync(ALL_LANES, active) & prefixlanes);

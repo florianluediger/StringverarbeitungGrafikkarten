@@ -19,13 +19,13 @@ An dieser Stelle entsteht ein Nichtdeterminismus, da beim Lesen eines Zeichens d
 Die Modelle des regulären Ausdrucks, des DFA und des NFA sind äquivalent und lassen sich daher ineinander überführen \cite{Hopcroft2002}.
 Aus dem regulären Ausdruck \texttt{(0|1)*((00)+|001)0} lassen sich somit der in Abbildung \ref{nfa_beispiel} dargestellte NFA und der in Abbildung \ref{dfa_beispiel} dargestellte DFA generieren.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\includegraphics[width=\textwidth]{bilder/nfa_beispiel.pdf}
 	\caption{Visuelle Darstellung des NFA zum regulären Ausdruck \texttt{(0|1)*((00)+|001)0}}
 	\label{nfa_beispiel}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\includegraphics[width=\textwidth]{bilder/dfa_beispiel.pdf}
 	\caption{Visuelle Darstellung des DFA zum regulären Ausdruck \texttt{(0|1)*((00)+|001)0}}
 	\label{dfa_beispiel}
@@ -37,7 +37,7 @@ Der vorgestellte DFA lässt sich als zweidimensionale Übergangstabelle darstell
 Beginnend mit dem Startzustand muss somit lediglich für jedes Zeichen des Eingabewortes der aktuelle Zustand entsprechend der Tabelle angepasst werden und es kann am Ende überprüft werden, ob ein akzeptierender Zustand erreicht wurde.
 Dieses Verfahren wird in Abbildung \ref{dfa_matching} schematisch dargestellt.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=Python]
 	dfa = [[1, 0],
 		[2, 0],
@@ -60,7 +60,7 @@ Dieses Verfahren wird in Abbildung \ref{dfa_matching} schematisch dargestellt.
 	\label{dfa_matching}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=Python]
 	nfa = [[[0, 1, 3], [0]],
 		[[2], []],

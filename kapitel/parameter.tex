@@ -8,7 +8,7 @@ Neben den Eigenschaften des Datensatzes gibt es noch Parameter, die bei der Ausf
 Diese Parameter bestehen, wie in Kapitel \ref{sec:cuda_scheduling} beschrieben, in der Anzahl der Threads pro Block (\emph{Block Size}) und der Anzahl der Blöcke im Grid (\emph{Grid Size}).
 Aus den Parametern setzt sich die \emph{Grid-Konfiguration} zusammen, die durch das Ausprobieren unterschiedlicher Werte praktisch optimiert werden kann.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\includegraphics[]{bilder/parameter025.pdf}
 	\caption{Laufzeit des naiven String-Vergleichsalgorithmus in Millisekunden für den Type-Datensatz mit einer Selektivität von 0.25\% unter Verwendung unterschiedlicher Grid-Konfigurationen}
 	\label{parameter025}

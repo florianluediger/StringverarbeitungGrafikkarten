@@ -27,7 +27,7 @@ Bei der ersten Messung soll überprüft werden, wie sich die in Kapitel \ref{sec
 Untersucht werden hier die in Kapitel \ref{sec:regex_duchlaufen} beschriebene \emph{Flat}-Variante des von Ragel generierten Algorithmus, die in Kapitel \ref{sec:regex_alternativen} vorgestellte \emph{Table}-Variante dieses Verfahrens, die dort ebenfalls angesprochene \emph{LIKE}-Operation, welche aus DogQC entnommen wurde, und die in Kapitel \ref{sec:prefixtest} vorgestellte Implementierung zum einfachen Präfixtest.
 Der untersuchte reguläre Ausdruck passt auf eine bestimmte Zeichenfolge am Anfang jedes Strings und lässt keine Zeichen vor diesem Suchstring zu, danach sind dagegen beliebige Strings zulässig. 
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[
@@ -72,7 +72,7 @@ Bei einem Anteil Matches von 64\% beträgt dieser Unterschied 37\%.
 Die nachfolgende Untersuchung dient dazu, den Einfluss des Lane Refill auf die Varianten \emph{Flat} und \emph{Table} des regulären Musterabgleichs sowie den einfachen Präfixtest zu analysieren.
 Der hier verwendete reguläre Ausdruck ist derselbe wie im vorherigen Abschnitt.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[
@@ -114,7 +114,7 @@ Die Verbesserung aller untersuchter Algorithmen ist für einen mittelgroßen Ant
 Schließlich werden die absoluten Laufzeiten der durch das Lane Refill verbesserten Verfahren untereinander und mit dem \emph{LIKE}-Operator verglichen.
 Der reguläre Ausdruck bleibt derselbe wie in den letzten beiden Abschnitten beschrieben.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[
@@ -158,7 +158,7 @@ Als nächstes wird untersucht, wie sich die Laufzeiten der Algorithmen entwickel
 Der Datensatz bleibt dazu identisch zu den vorherigen Tests, es wird lediglich der reguläre Ausdruck dementsprechend erweitert, dass dieser beliebige Zeichen vor dem Suchstring zulässt.
 Diese Modifikation führt dazu, dass der Präfixtest an dieser Stelle nicht mehr untersucht werden kann, da dieser keine beliebigen Zeichen unterstützt.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[
@@ -211,7 +211,7 @@ Um die Automatengröße zu erhöhen, wurden weitere Suchwörter, welche in diese
 Dadurch wird ein größerer Automat bei gleichbleibender Selektivität erreicht.
 
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\centering
 	\begin{tikzpicture}
 		\begin{axis}[

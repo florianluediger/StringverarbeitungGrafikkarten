@@ -15,7 +15,7 @@ Zur Speicherung der zu verarbeitenden Daten gibt es eigenständige Speichermodul
 Für die Nvidia GTX 950, welche im Folgenden als Beispiel genutzt werden soll, beträgt die Größe dieses Speichers 2 GB.
 Über eine PCI-Express-Anbindung wird die Kommunikation mit dem Hauptprozessor und die Übertragung der Daten zwischen den Speicherbereichen realisiert.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\includegraphics[]{bilder/gpu_architecture.pdf}
 	\caption{Architektur einer GPU \cite{Volkov2016}}
 	\label{gpu_architecture}
@@ -95,7 +95,7 @@ Innerhalb eines Kernels kann der Thread auf seinen Threadindex (\texttt{threadId
 Der globale Index eines Threads berechnet sich somit aus \texttt{blockIdx.x * blockDim.x + threadIdx.x} und die Sprungweite ist definiert durch \texttt{blockDim.x * gridDim.x}.
 Die dafür zur Verfügung gestellten Variablen und eine beispielhafte Iteration über zwei Datensätze sind in Abbildung \ref{cuda_example} dargestellt.
 
-\begin{figure}[ht]
+\begin{figure}[]
 	\begin{lstlisting}[language=MyC++]
 	__global__
 	void add(int n, float *x, float *y)
