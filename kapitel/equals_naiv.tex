@@ -176,7 +176,7 @@ Es ist erkennbar, an welchen Stellen die Lanes inaktiv werden, wann die Berechnu
 \end{figure}
 
 In Abbildung \ref{naive_equals} ist die Implementierung des Operators dargestellt, welcher in einer kompilierten Anfragepipeline die Selektion eines String-Attributs durchführen kann.
-Dieser würde beispielsweise die rot markierte Selektion in Abbildung \ref{pipelining_example_code} ersetzen, falls das \texttt{prio}-Attribut in dem Beispiel aus Abbildung \ref{pipeline_example_plan} Strings enthalten würde und alle Bestellungen mit der Priorität \emph{\enquote{HIGH}} gesucht werden würden.
+Dieser würde beispielsweise die rot markierte Selektion in Abbildung \ref{pipelining_example_code} ersetzen, falls das \texttt{prio}-Attribut in dem Beispiel aus Abbildung \ref{pipeline_example_plan} Strings enthalten würde und alle Bestellungen mit der Priorität \glqq HIGH\grqq  gesucht werden würden.
 Nach Abschluss der Berechnung ist der Wert der \texttt{active}-Variable genau dann \texttt{true}, wenn der String mit dem gesuchten String übereinstimmt, sodass im Anschluss mit weiteren Operationen fortgefahren werden kann.
 
 Diese Implementierung erwartet, dass einige Daten vorher vom Hauptspeicher in den Speicherbereich der GPU kopiert wurden und dort zur Verfügung stehen.
