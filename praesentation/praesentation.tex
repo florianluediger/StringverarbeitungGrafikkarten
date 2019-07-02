@@ -1,0 +1,38 @@
+\documentclass{beamer}
+\usetheme{metropolis}
+
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}                                 % deutsche Sprache
+\usepackage[T1]{fontenc}                                    % Unterstützung für Umlaute mit Fonts
+\usepackage[autostyle=true,german=quotes]{csquotes}			% Wird für den Befehl \enquote benötigt
+\usepackage{tikz}											% Ermöglicht das Zeichnen von Grafiken
+\usepackage{amssymb}										% Einfügen von zusätzlichen Symbolen wie \square
+\usepackage{enumitem}										% Erweiterte Funktionen der enumerate Umgebung
+\usepackage{marvosym}										% Einfügen nützlicher Symbole
+
+\metroset{titleformat=smallcaps,		% Überschriften werden in smallcaps geschrieben
+	sectionpage=simple,					% Entfernen der Progressbar auf den Sectionpages
+	block=fill,							% Hinterlegen von Umgebungen wie Theorem oder Example
+}							
+
+% Treffen von Einstellungen für tikz
+\usetikzlibrary{positioning}
+\usetikzlibrary{fit}
+\usetikzlibrary{shapes.geometric}
+\tikzset{main node/.style={circle,fill=blue!50,draw,minimum size=0.7cm,inner sep=0pt},}
+\tikzset{bezier/.style={inner sep=0pt,minimum size=0cm},}
+
+
+\title{Effiziente String-Verarbeitung in Datenbankanfragen auf hochgradig paralleler Hardware}
+\subtitle{Masterarbeit}
+\date{\today}
+\author{Florian Lüdiger}
+\institute{Fakultät Informatik - Lehrstuhl 6 - TU Dortmund}
+\begin{document}
+	\maketitle
+	
+	\section{Wo liegt da denn das Problem?}
+	\begin{frame}{GPU-Verarbeitungsmodell}
+		
+	\end{frame}
+\end{document}
